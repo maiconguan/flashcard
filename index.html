@@ -150,6 +150,8 @@
 <body>
 
 <div class="container">
+  <!-- Nút refresh thủ công (chỉ admin dùng) -->
+  <button id="refreshData" style="position:absolute;top:-50px;right:0;padding:6px 10px;font-size:12px;cursor:pointer;">🔄 Cập nhật dữ liệu</button>
   <button class="nav-btn left" aria-label="Previous"></button>
 
   <div class="slide-wrapper">
@@ -178,7 +180,8 @@
   }
 
   const sheetId = extractSheetId(sheetURL);
-  const apiURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+  // ===== CHỐNG CACHE GOOGLE SITES =====
+  const apiURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&ts=${Date.now()}`;
 
   let words = [];
   let index = 0;
@@ -249,6 +252,7 @@
     }
   });
 
+  function loadData() {
   fetch(apiURL)
     .then(res => res.text())
     .then(text => {
@@ -268,6 +272,21 @@
       back.innerHTML = err.message;
       console.error(err);
     });
+}
+
+// Load lần đầu
+loadData();
+
+// Auto refresh mỗi 5 phút (300000 ms)
+setInterval(loadData, 300000);
+
+// Nút refresh thủ công
+const refreshBtn = document.getElementById('refreshData');
+if (refreshBtn) {
+  refreshBtn.addEventListener('click', () => {
+    loadData();
+  });
+}
 </script>
 
 </body>
