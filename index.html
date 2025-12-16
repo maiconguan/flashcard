@@ -15,18 +15,29 @@
     }
 
     .container {
-      width: 300px; /* khung hẹp hơn để card dựng đứng */
+      width: 300px; /* card dựng đứng */
       position: relative;
       display: flex;
       justify-content: center;
+      align-items: center;
       perspective: 1000px;
+    }
+
+    /* ===== SLIDE WRAPPER (GIỮ VỊ TRÍ CARD) ===== */
+    .slide-wrapper {
+      width: 100%;
+      height: 460px;
+      position: relative;
+      overflow: visible; /* ❗ card không đẩy nút */
     }
 
     /* ===== CARD 3D ===== */
     .card-wrapper {
       width: 100%;
-      height: 460px; /* 👈 card hình chữ nhật dựng đứng */
-      position: relative;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
       transform-style: preserve-3d;
       transition: transform 0.7s;
     }
@@ -37,8 +48,7 @@
 
     .card-face {
       position: absolute;
-      width: 100%;
-      height: 100%;
+      inset: 0; /* 👈 luôn cố định vị trí */
       backface-visibility: hidden;
       background: white;
       border-radius: 12px;
@@ -55,7 +65,7 @@
       transform: rotateY(180deg);
     }
 
-    /* ===== SLIDE EFFECT ===== */
+    /* ===== SLIDE EFFECT (CHỈ TRƯỢT WRAPPER) ===== */
     .slide-left {
       animation: slideLeft 0.35s forwards;
     }
@@ -82,7 +92,7 @@
     .meaning { font-size: 22px; color: #27ae60; }
     .example { font-size: 16px; color: #555; margin-top: 10px; font-style: italic; }
 
-    /* ===== NAV BUTTONS (LEFT / RIGHT OF CARD) ===== */
+    /* ===== NAV BUTTONS (CỐ ĐỊNH THEO CARD) ===== */
     .nav-btn {
       position: absolute;
       top: 50%;
@@ -91,7 +101,7 @@
       height: 44px;
       border-radius: 50%;
       border: none;
-      background: rgba(52, 152, 219, 0.9);
+      background: rgba(52, 152, 219, 0.95);
       color: white;
       font-size: 22px;
       cursor: pointer;
@@ -99,31 +109,14 @@
       align-items: center;
       justify-content: center;
       box-shadow: 0 6px 12px rgba(0,0,0,0.25);
-      z-index: 10;
+      z-index: 5; /* 👈 luôn trên card */
     }
 
     .nav-btn.left { left: -52px; }
     .nav-btn.right { right: -52px; }
 
-    .nav-btn:active { transform: translateY(-50%) scale(0.95); }
-
-    .nav button {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      border: none;
-      background: #3498db;
-      color: white;
-      font-size: 22px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-    }
-
-    .nav button:active {
-      transform: scale(0.95);
+    .nav-btn:active {
+      transform: translateY(-50%) scale(0.95);
     }
   </style>
 </head>
@@ -131,18 +124,20 @@
 
 <div class="container">
 
-  <div id="cardWrapper" class="card-wrapper" onclick="flipCard()">
-    <div class="card-face card-front" id="front"></div>
-    <div class="card-face card-back" id="back"></div>
+  <button class="nav-btn left" onclick="prevCard(); event.stopPropagation();">◀</button>
+
+  <div id="slideWrapper" class="slide-wrapper">
+    <div id="cardWrapper" class="card-wrapper" onclick="flipCard()">
+      <div class="card-face" id="front"></div>
+      <div class="card-face card-back" id="back"></div>
+    </div>
   </div>
 
-  <button class="nav-btn left" onclick="prevCard(); event.stopPropagation();">◀</button>
   <button class="nav-btn right" onclick="nextCard(); event.stopPropagation();">▶</button>
 
 </div>
 
 <script>
-  /* ================= GOOGLE SHEET ================= */
   const sheetURL = "https://docs.google.com/spreadsheets/d/1vmqYN5_0lku8q97oxQP3ppQLtSOxTZtL_L0fnAPnF2Y/edit?usp=sharing";
 
   function extractSheetId(url) {
@@ -173,61 +168,49 @@
 
   function renderCard() {
     const w = words[index];
-    document.getElementById("front").innerHTML = `
+    front.innerHTML = `
       ${w.image ? `<img src="${w.image}">` : ""}
       <div class="word">${w.en}</div>
       <p>(Click để lật thẻ)</p>`;
 
-    document.getElementById("back").innerHTML = `
+    back.innerHTML = `
       <div class="meaning">${w.vi}</div>
       <div class="example">${w.example}</div>`;
   }
 
   function flipCard() {
     flipped = !flipped;
-    document.getElementById("cardWrapper").classList.toggle("flipped", flipped);
+    cardWrapper.classList.toggle("flipped", flipped);
   }
 
-  function nextCard() {
-    slideTo(1);
-  }
-
-  function prevCard() {
-    slideTo(-1);
-  }
+  function nextCard() { slideTo(1); }
+  function prevCard() { slideTo(-1); }
 
   function slideTo(direction) {
-    const wrapper = document.getElementById("cardWrapper");
-    wrapper.classList.add(direction === 1 ? "slide-left" : "slide-right");
+    slideWrapper.classList.add(direction === 1 ? "slide-left" : "slide-right");
 
     setTimeout(() => {
-      index = (index + direction + words.length) % words.length; // 🔁 vòng tròn
+      index = (index + direction + words.length) % words.length;
       flipped = false;
-      wrapper.classList.remove("flipped");
+      cardWrapper.classList.remove("flipped");
       renderCard();
-      wrapper.classList.remove("slide-left", "slide-right");
+      slideWrapper.classList.remove("slide-left", "slide-right");
     }, 300);
   }
 
-  console.assert(extractSheetId(sheetURL), "Sheet ID invalid");
-  /* ===== SWIPE FOR MOBILE ===== */
+  /* ===== SWIPE MOBILE ===== */
   let startX = 0;
 
-  const cardEl = document.getElementById("cardWrapper");
-
-  cardEl.addEventListener("touchstart", e => {
+  cardWrapper.addEventListener("touchstart", e => {
     startX = e.touches[0].clientX;
   });
 
-  cardEl.addEventListener("touchend", e => {
-    const endX = e.changedTouches[0].clientX;
-    const diff = endX - startX;
-
-    if (Math.abs(diff) > 50) {
-      diff < 0 ? nextCard() : prevCard();
-    }
+  cardWrapper.addEventListener("touchend", e => {
+    const diff = e.changedTouches[0].clientX - startX;
+    if (Math.abs(diff) > 50) diff < 0 ? nextCard() : prevCard();
   });
 
+  console.assert(extractSheetId(sheetURL), "Sheet ID invalid");
 </script>
 
 </body>
