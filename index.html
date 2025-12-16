@@ -189,12 +189,9 @@
   const userNameDiv = document.getElementById('userName');
 
   if (userNameDiv) {
-    if (currentUser) {
-      const name = currentUser.split('@')[0];
-      userNameDiv.textContent = `👤 ${name}`;
-    } else {
-      userNameDiv.textContent = '👤 Guest';
-    }
+    userNameDiv.textContent = currentUser
+      ? `👤 ${currentUser.split('@')[0]}`
+      : '👤 Guest';
   }
 
   function getVisibleWords() {
@@ -264,13 +261,16 @@
       .then(res => res.text())
       .then(text => {
         const json = JSON.parse(text.substring(47, text.length - 2));
-        const newWords = json.table.rows.map(r => ({
-          owner: r.c?.[0]?.v || '',
-          en: r.c?.[1]?.v || '',
-          vi: r.c?.[2]?.v || '',
-          example: r.c?.[3]?.v || '',
-          image: r.c?.[4]?.v || ''
-        })).filter(w => w.en);
+        const newWords = json.table.rows
+          .map(r => ({
+            time: r.c?.[0]?.v || '',
+            owner: r.c?.[1]?.v || '',
+            en: r.c?.[2]?.v || '',
+            vi: r.c?.[3]?.v || '',
+            example: r.c?.[4]?.v || '',
+            image: r.c?.[5]?.v || ''
+          }))
+          .filter(w => w.en);
 
         const hash = JSON.stringify(newWords);
         if (hash !== lastHash) {
