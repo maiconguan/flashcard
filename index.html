@@ -126,6 +126,7 @@
       border-style: solid;
       cursor: pointer;
       z-index: 10;
+      background: transparent;
     }
 
     .nav-btn.left {
@@ -184,8 +185,9 @@
   let flipped = false;
 
   const params = new URLSearchParams(window.location.search);
-  const userNameDiv = document.getElementById('userName');
   const currentUser = params.get('user');
+  const userNameDiv = document.getElementById('userName');
+
   if (userNameDiv) {
     if (currentUser) {
       const name = currentUser.split('@')[0];
@@ -193,20 +195,23 @@
     } else {
       userNameDiv.textContent = '👤 Guest';
     }
-  }`;
+  }
+
+  function getVisibleWords() {
+    return currentUser ? words.filter(w => w.owner === currentUser) : words;
   }
 
   function renderCard() {
-    const userWords = currentUser ? words.filter(w => w.owner === currentUser) : words;
+    const visibleWords = getVisibleWords();
 
-    if (!userWords.length) {
+    if (!visibleWords.length) {
       front.innerHTML = '<b>Chưa có từ vựng</b>';
       back.innerHTML = 'Vui lòng thêm từ mới';
       return;
     }
 
-    index = index % userWords.length;
-    const w = userWords[index];
+    index = index % visibleWords.length;
+    const w = visibleWords[index];
 
     front.innerHTML = `
       ${w.image ? `<img src="${w.image}" alt="">` : ''}
@@ -225,7 +230,8 @@
   }
 
   function slideTo(dir) {
-    if (!words.length) return;
+    const visibleWords = getVisibleWords();
+    if (!visibleWords.length) return;
 
     slideWrapper.classList.remove('slide-left', 'slide-right');
     void slideWrapper.offsetWidth;
@@ -233,7 +239,7 @@
     slideWrapper.classList.add(dir === 1 ? 'slide-left' : 'slide-right');
 
     setTimeout(() => {
-      index = (index + dir + words.length) % words.length;
+      index = (index + dir + visibleWords.length) % visibleWords.length;
       flipped = false;
       cardWrapper.classList.remove('flipped');
       renderCard();
@@ -270,7 +276,7 @@
         if (hash !== lastHash) {
           lastHash = hash;
           words = newWords;
-          index = Math.min(index, words.length - 1);
+          index = 0;
           renderCard();
         }
       })
