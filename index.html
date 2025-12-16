@@ -11,127 +11,224 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
+      margin: 0;
     }
+
     .container {
-      width: 360px;
-      text-align: center;
+      width: 300px; /* khung hẹp hơn để card dựng đứng */
+      position: relative;
+      display: flex;
+      justify-content: center;
+      perspective: 1000px;
     }
-    .card {
+
+    /* ===== CARD 3D ===== */
+    .card-wrapper {
+      width: 100%;
+      height: 460px; /* 👈 card hình chữ nhật dựng đứng */
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.7s;
+    }
+
+    .card-wrapper.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
       background: white;
       border-radius: 12px;
       padding: 20px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-      cursor: pointer;
-      min-height: 320px;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      transition: transform 0.4s;
+      align-items: center;
+      cursor: pointer;
     }
-    .card:hover {
-      transform: scale(1.03);
+
+    .card-back {
+      transform: rotateY(180deg);
     }
+
+    /* ===== SLIDE EFFECT ===== */
+    .slide-left {
+      animation: slideLeft 0.35s forwards;
+    }
+
+    .slide-right {
+      animation: slideRight 0.35s forwards;
+    }
+
+    @keyframes slideLeft {
+      to { transform: translateX(-120%); opacity: 0; }
+    }
+
+    @keyframes slideRight {
+      to { transform: translateX(120%); opacity: 0; }
+    }
+
     img {
       max-width: 100%;
       border-radius: 10px;
       margin-bottom: 10px;
     }
-    .word {
-      font-size: 32px;
-      font-weight: bold;
-      color: #2c3e50;
-    }
-    .meaning {
+
+    .word { font-size: 32px; font-weight: bold; }
+    .meaning { font-size: 22px; color: #27ae60; }
+    .example { font-size: 16px; color: #555; margin-top: 10px; font-style: italic; }
+
+    /* ===== NAV BUTTONS (LEFT / RIGHT OF CARD) ===== */
+    .nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(52, 152, 219, 0.9);
+      color: white;
       font-size: 22px;
-      color: #27ae60;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.25);
+      z-index: 10;
     }
-    .example {
-      font-size: 16px;
-      color: #555;
-      margin-top: 10px;
-      font-style: italic;
-    }
-    button {
-      margin-top: 15px;
-      padding: 10px 18px;
-      font-size: 16px;
-      border-radius: 8px;
+
+    .nav-btn.left { left: -52px; }
+    .nav-btn.right { right: -52px; }
+
+    .nav-btn:active { transform: translateY(-50%) scale(0.95); }
+
+    .nav button {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
       border: none;
       background: #3498db;
       color: white;
+      font-size: 22px;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
     }
-    button:hover {
-      background: #2980b9;
+
+    .nav button:active {
+      transform: scale(0.95);
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="card" onclick="flipCard()">
-      <div id="content"></div>
-    </div>
-    <button onclick="nextCard()">Từ tiếp theo ▶</button>
+
+<div class="container">
+
+  <div id="cardWrapper" class="card-wrapper" onclick="flipCard()">
+    <div class="card-face card-front" id="front"></div>
+    <div class="card-face card-back" id="back"></div>
   </div>
 
-  <script>
-    // 🔗 DÁN LINK GOOGLE SHEET (KHÔNG CẦN EXPORT CSV)
-    // Ví dụ: https://docs.google.com/spreadsheets/d/XXXX/edit#gid=0
-    const sheetURL = "https://docs.google.com/spreadsheets/d/1vmqYN5_0lku8q97oxQP3ppQLtSOxTZtL_L0fnAPnF2Y/edit?usp=sharing";
+  <button class="nav-btn left" onclick="prevCard(); event.stopPropagation();">◀</button>
+  <button class="nav-btn right" onclick="nextCard(); event.stopPropagation();">▶</button>
 
-    let words = [];
+</div>
 
-    let index = 0;
-    let isFront = true;
+<script>
+  /* ================= GOOGLE SHEET ================= */
+  const sheetURL = "https://docs.google.com/spreadsheets/d/1vmqYN5_0lku8q97oxQP3ppQLtSOxTZtL_L0fnAPnF2Y/edit?usp=sharing";
 
-    // === LOAD DATA TỪ GOOGLE SHEET (Visualization API) ===
-    const sheetId = sheetURL.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/)[1];
-    const apiURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+  function extractSheetId(url) {
+    const match = url.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+    return match ? match[1] : null;
+  }
 
-    fetch(apiURL)
-      .then(res => res.text())
-      .then(text => {
-        const json = JSON.parse(text.substring(47, text.length - 2));
-        const rows = json.table.rows;
+  const sheetId = extractSheetId(sheetURL);
+  const apiURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
 
-        words = rows.map(r => ({
-          en: r.c[1]?.v || "",
-          vi: r.c[2]?.v || "",
-          example: r.c[3]?.v || "",
-          image: r.c[4]?.v || ""
-        })).filter(w => w.en);
+  let words = [];
+  let index = 0;
+  let flipped = false;
 
-        showFront();
-      });
+  fetch(apiURL)
+    .then(res => res.text())
+    .then(text => {
+      const json = JSON.parse(text.substring(47, text.length - 2));
+      words = json.table.rows.map(r => ({
+        en: r.c[1]?.v || "",
+        vi: r.c[2]?.v || "",
+        example: r.c[3]?.v || "",
+        image: r.c[4]?.v || ""
+      })).filter(w => w.en);
 
-    function showFront() {
-      const w = words[index];
-      document.getElementById("content").innerHTML = `
-        <img src="${w.image}" alt="image" />
-        <div class="word">${w.en}</div>
-        <p>(Click để xem nghĩa)</p>
-      `;
-      isFront = true;
+      renderCard();
+    });
+
+  function renderCard() {
+    const w = words[index];
+    document.getElementById("front").innerHTML = `
+      ${w.image ? `<img src="${w.image}">` : ""}
+      <div class="word">${w.en}</div>
+      <p>(Click để lật thẻ)</p>`;
+
+    document.getElementById("back").innerHTML = `
+      <div class="meaning">${w.vi}</div>
+      <div class="example">${w.example}</div>`;
+  }
+
+  function flipCard() {
+    flipped = !flipped;
+    document.getElementById("cardWrapper").classList.toggle("flipped", flipped);
+  }
+
+  function nextCard() {
+    slideTo(1);
+  }
+
+  function prevCard() {
+    slideTo(-1);
+  }
+
+  function slideTo(direction) {
+    const wrapper = document.getElementById("cardWrapper");
+    wrapper.classList.add(direction === 1 ? "slide-left" : "slide-right");
+
+    setTimeout(() => {
+      index = (index + direction + words.length) % words.length; // 🔁 vòng tròn
+      flipped = false;
+      wrapper.classList.remove("flipped");
+      renderCard();
+      wrapper.classList.remove("slide-left", "slide-right");
+    }, 300);
+  }
+
+  console.assert(extractSheetId(sheetURL), "Sheet ID invalid");
+  /* ===== SWIPE FOR MOBILE ===== */
+  let startX = 0;
+
+  const cardEl = document.getElementById("cardWrapper");
+
+  cardEl.addEventListener("touchstart", e => {
+    startX = e.touches[0].clientX;
+  });
+
+  cardEl.addEventListener("touchend", e => {
+    const endX = e.changedTouches[0].clientX;
+    const diff = endX - startX;
+
+    if (Math.abs(diff) > 50) {
+      diff < 0 ? nextCard() : prevCard();
     }
+  });
 
-    function showBack() {
-      const w = words[index];
-      document.getElementById("content").innerHTML = `
-        <div class="meaning">${w.vi}</div>
-        <div class="example">${w.example}</div>
-      `;
-      isFront = false;
-    }
+</script>
 
-    function flipCard() {
-      if (isFront) showBack();
-      else showFront();
-    }
-
-    function nextCard() {
-      index = (index + 1) % words.length;
-      showFront();
-    }
-  </script>
 </body>
 </html>
