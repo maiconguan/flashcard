@@ -17,6 +17,16 @@
       overflow: hidden;
     }
 
+    .user-name {
+      position: absolute;
+      top: -48px;
+      width: 100%;
+      text-align: center;
+      font-weight: bold;
+      font-size: 18px;
+      color: #2c3e50;
+    }
+
     .container {
       width: 300px;
       height: 460px;
@@ -30,7 +40,6 @@
       position: relative;
     }
 
-    /* Stack card effect */
     .slide-wrapper::before {
       content: '';
       position: absolute;
@@ -42,30 +51,24 @@
       transform: scale(0.96);
     }
 
-    .slide-wrapper.slide-left {
-      animation: slideLeft 0.45s ease;
-    }
-
-    .slide-wrapper.slide-right {
-      animation: slideRight 0.45s ease;
-    }
+    .slide-wrapper.slide-left { animation: slideLeft 0.45s ease; }
+    .slide-wrapper.slide-right { animation: slideRight 0.45s ease; }
 
     @keyframes slideLeft {
       from { transform: translateX(0) scale(1); opacity: 1; }
-      to   { transform: translateX(-120px) scale(0.92); opacity: 0; }
+      to { transform: translateX(-120px) scale(0.92); opacity: 0; }
     }
 
     @keyframes slideRight {
       from { transform: translateX(0) scale(1); opacity: 1; }
-      to   { transform: translateX(120px) scale(0.92); opacity: 0; }
+      to { transform: translateX(120px) scale(0.92); opacity: 0; }
     }
 
     .card-wrapper {
       width: 100%;
       height: 100%;
       position: absolute;
-      top: 0;
-      left: 0;
+      inset: 0;
       transform-style: preserve-3d;
       transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
       cursor: pointer;
@@ -73,7 +76,7 @@
     }
 
     .card-wrapper.flipped {
-      transform: rotateY(180deg) translateZ(40px);
+      transform: rotateY(180deg);
     }
 
     .card-face {
@@ -114,7 +117,6 @@
     .meaning { font-size: 22px; color: #27ae60; }
     .example { font-size: 16px; color: #555; margin-top: 10px; font-style: italic; }
 
-    /* Triangle navigation buttons */
     .nav-btn {
       position: absolute;
       top: 50%;
@@ -122,36 +124,30 @@
       width: 0;
       height: 0;
       border-style: solid;
-      background: transparent;
       cursor: pointer;
       z-index: 10;
-      filter: drop-shadow(0 8px 14px rgba(0,0,0,0.35));
     }
 
     .nav-btn.left {
-      border-width: 110px 150px 110px 0;
+      border-width: 90px 120px 90px 0;
       border-color: transparent rgba(52,152,219,0.95) transparent transparent;
-      left: -190px;
+      left: -160px;
     }
 
     .nav-btn.right {
-      border-width: 110px 0 110px 150px;
+      border-width: 90px 0 90px 120px;
       border-color: transparent transparent transparent rgba(52,152,219,0.95);
-      right: -190px;
+      right: -160px;
     }
 
-    .loading {
-      font-size: 18px;
-      color: #555;
-    }
+    .loading { font-size: 18px; color: #555; }
   </style>
 </head>
 
 <body>
 
 <div class="container">
-  <!-- Nút refresh thủ công (chỉ admin dùng) -->
-  <button id="refreshData" style="position:absolute;top:-50px;right:0;padding:6px 10px;font-size:12px;cursor:pointer;">🔄 Cập nhật dữ liệu</button>
+  <div class="user-name" id="userName"></div>
   <button class="nav-btn left" aria-label="Previous"></button>
 
   <div class="slide-wrapper">
@@ -180,44 +176,61 @@
   }
 
   const sheetId = extractSheetId(sheetURL);
-  // ===== CHỐNG CACHE GOOGLE SITES =====
-  let apiURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+  const apiURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
 
   let words = [];
   let lastHash = '';
   let index = 0;
   let flipped = false;
 
+  const params = new URLSearchParams(window.location.search);
+  const userNameDiv = document.getElementById('userName');
+  const currentUser = params.get('user');
+  if (userNameDiv) {
+    if (currentUser) {
+      const name = currentUser.split('@')[0];
+      userNameDiv.textContent = `👤 ${name}`;
+    } else {
+      userNameDiv.textContent = '👤 Guest';
+    }
+  }`;
+  }
+
   function renderCard() {
-    if (!words.length) return;
-    const w = words[index] || {};
+    const userWords = currentUser ? words.filter(w => w.owner === currentUser) : words;
+
+    if (!userWords.length) {
+      front.innerHTML = '<b>Chưa có từ vựng</b>';
+      back.innerHTML = 'Vui lòng thêm từ mới';
+      return;
+    }
+
+    index = index % userWords.length;
+    const w = userWords[index];
 
     front.innerHTML = `
       ${w.image ? `<img src="${w.image}" alt="">` : ''}
-      <div class="word">${w.en || ''}</div>
+      <div class="word">${w.en}</div>
       <p>(Chạm để lật thẻ)</p>`;
 
     back.innerHTML = `
-      <div class="meaning">${w.vi || ''}</div>
+      <div class="meaning">${w.vi}</div>
       <div class="example">${w.example || ''}</div>`;
   }
 
   function flipCard() {
-    if (!words.length || slideWrapper.classList.contains('sliding')) return;
+    if (!words.length) return;
     flipped = !flipped;
     cardWrapper.classList.toggle('flipped', flipped);
   }
 
   function slideTo(dir) {
-    if (!words.length || slideWrapper.classList.contains('sliding')) return;
-
-    slideWrapper.classList.add('sliding');
+    if (!words.length) return;
 
     slideWrapper.classList.remove('slide-left', 'slide-right');
     void slideWrapper.offsetWidth;
 
-    const slideClass = dir === 1 ? 'slide-left' : 'slide-right';
-    slideWrapper.classList.add(slideClass);
+    slideWrapper.classList.add(dir === 1 ? 'slide-left' : 'slide-right');
 
     setTimeout(() => {
       index = (index + dir + words.length) % words.length;
@@ -225,35 +238,19 @@
       cardWrapper.classList.remove('flipped');
       renderCard();
     }, 260);
-
-    setTimeout(() => {
-      slideWrapper.classList.remove(slideClass, 'sliding');
-    }, 520);
   }
 
   btnNext.addEventListener('click', e => { e.stopPropagation(); slideTo(1); });
   btnPrev.addEventListener('click', e => { e.stopPropagation(); slideTo(-1); });
   cardWrapper.addEventListener('click', flipCard);
 
-  // Swipe mobile
   let startX = 0;
-  let startY = 0;
-
-  slideWrapper.addEventListener('touchstart', e => {
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-  });
-
+  slideWrapper.addEventListener('touchstart', e => startX = e.touches[0].clientX);
   slideWrapper.addEventListener('touchend', e => {
     const dx = e.changedTouches[0].clientX - startX;
-    const dy = e.changedTouches[0].clientY - startY;
-
-    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
-      slideTo(dx < 0 ? 1 : -1);
-    }
+    if (Math.abs(dx) > 50) slideTo(dx < 0 ? 1 : -1);
   });
 
-  function loadData() {
   function fetchSheetData() {
     const noCacheURL = apiURL + `&_ts=${Date.now()}`;
 
@@ -262,6 +259,7 @@
       .then(text => {
         const json = JSON.parse(text.substring(47, text.length - 2));
         const newWords = json.table.rows.map(r => ({
+          owner: r.c?.[0]?.v || '',
           en: r.c?.[1]?.v || '',
           vi: r.c?.[2]?.v || '',
           example: r.c?.[3]?.v || '',
@@ -274,7 +272,6 @@
           words = newWords;
           index = Math.min(index, words.length - 1);
           renderCard();
-          console.log('Flashcard updated from Google Sheet');
         }
       })
       .catch(err => {
@@ -286,21 +283,6 @@
 
   fetchSheetData();
   setInterval(fetchSheetData, 5000);
-}
-
-// Load lần đầu
-loadData();
-
-// Auto refresh mỗi 5 phút (300000 ms)
-setInterval(loadData, 300000);
-
-// Nút refresh thủ công
-const refreshBtn = document.getElementById('refreshData');
-if (refreshBtn) {
-  refreshBtn.addEventListener('click', () => {
-    loadData();
-  });
-}
 </script>
 
 </body>
