@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Flashcard Từ Vựng Tiếng Anh</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      width: 360px;
+      text-align: center;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      cursor: pointer;
+      min-height: 320px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      transition: transform 0.4s;
+    }
+    .card:hover {
+      transform: scale(1.03);
+    }
+    img {
+      max-width: 100%;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+    .word {
+      font-size: 32px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+    .meaning {
+      font-size: 22px;
+      color: #27ae60;
+    }
+    .example {
+      font-size: 16px;
+      color: #555;
+      margin-top: 10px;
+      font-style: italic;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 18px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      background: #3498db;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card" onclick="flipCard()">
+      <div id="content"></div>
+    </div>
+    <button onclick="nextCard()">Từ tiếp theo ▶</button>
+  </div>
+
+  <script>
+    // 🔗 DÁN LINK GOOGLE SHEET (KHÔNG CẦN EXPORT CSV)
+    // Ví dụ: https://docs.google.com/spreadsheets/d/XXXX/edit#gid=0
+    const sheetURL = "https://docs.google.com/spreadsheets/d/1vmqYN5_0lku8q97oxQP3ppQLtSOxTZtL_L0fnAPnF2Y/edit?usp=sharing";
+
+    let words = [];
+
+    let index = 0;
+    let isFront = true;
+
+    // === LOAD DATA TỪ GOOGLE SHEET (Visualization API) ===
+    const sheetId = sheetURL.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/)[1];
+    const apiURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+
+    fetch(apiURL)
+      .then(res => res.text())
+      .then(text => {
+        const json = JSON.parse(text.substring(47, text.length - 2));
+        const rows = json.table.rows;
+
+        words = rows.map(r => ({
+          en: r.c[1]?.v || "",
+          vi: r.c[2]?.v || "",
+          example: r.c[3]?.v || "",
+          image: r.c[4]?.v || ""
+        })).filter(w => w.en);
+
+        showFront();
+      });
+
+    function showFront() {
+      const w = words[index];
+      document.getElementById("content").innerHTML = `
+        <img src="${w.image}" alt="image" />
+        <div class="word">${w.en}</div>
+        <p>(Click để xem nghĩa)</p>
+      `;
+      isFront = true;
+    }
+
+    function showBack() {
+      const w = words[index];
+      document.getElementById("content").innerHTML = `
+        <div class="meaning">${w.vi}</div>
+        <div class="example">${w.example}</div>
+      `;
+      isFront = false;
+    }
+
+    function flipCard() {
+      if (isFront) showBack();
+      else showFront();
+    }
+
+    function nextCard() {
+      index = (index + 1) % words.length;
+      showFront();
+    }
+  </script>
+</body>
+</html>
