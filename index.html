@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <title>Flashcard Từ Vựng Tiếng Anh</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -12,26 +14,52 @@
       align-items: center;
       height: 100vh;
       margin: 0;
+      overflow: hidden;
     }
 
     .container {
-      width: 300px; /* card dựng đứng */
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      perspective: 1000px;
-    }
-
-    /* ===== SLIDE WRAPPER (GIỮ VỊ TRÍ CARD) ===== */
-    .slide-wrapper {
-      width: 100%;
+      width: 300px;
       height: 460px;
       position: relative;
-      overflow: visible; /* ❗ card không đẩy nút */
+      perspective: 1200px;
     }
 
-    /* ===== CARD 3D ===== */
+    .slide-wrapper {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    /* Stack card effect */
+    .slide-wrapper::before {
+      content: '';
+      position: absolute;
+      inset: 12px;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.12);
+      z-index: 0;
+      transform: scale(0.96);
+    }
+
+    .slide-wrapper.slide-left {
+      animation: slideLeft 0.45s ease;
+    }
+
+    .slide-wrapper.slide-right {
+      animation: slideRight 0.45s ease;
+    }
+
+    @keyframes slideLeft {
+      from { transform: translateX(0) scale(1); opacity: 1; }
+      to   { transform: translateX(-120px) scale(0.92); opacity: 0; }
+    }
+
+    @keyframes slideRight {
+      from { transform: translateX(0) scale(1); opacity: 1; }
+      to   { transform: translateX(120px) scale(0.92); opacity: 0; }
+    }
+
     .card-wrapper {
       width: 100%;
       height: 100%;
@@ -39,105 +67,109 @@
       top: 0;
       left: 0;
       transform-style: preserve-3d;
-      transition: transform 0.7s;
+      transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+      cursor: pointer;
+      z-index: 2;
     }
 
     .card-wrapper.flipped {
-      transform: rotateY(180deg);
+      transform: rotateY(180deg) translateZ(40px);
     }
 
     .card-face {
       position: absolute;
-      inset: 0; /* 👈 luôn cố định vị trí */
+      inset: 0;
       backface-visibility: hidden;
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      border-radius: 14px;
+      padding: 22px;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.18);
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      cursor: pointer;
+      text-align: center;
+      box-sizing: border-box;
+    }
+
+    .card-front {
+      background: linear-gradient(135deg, #e3f2fd, #ffffff);
+      border: 2px solid #3498db;
     }
 
     .card-back {
+      background: linear-gradient(135deg, #e8f8f0, #ffffff);
+      border: 2px solid #27ae60;
       transform: rotateY(180deg);
-    }
-
-    /* ===== SLIDE EFFECT (CHỈ TRƯỢT WRAPPER) ===== */
-    .slide-left {
-      animation: slideLeft 0.35s forwards;
-    }
-
-    .slide-right {
-      animation: slideRight 0.35s forwards;
-    }
-
-    @keyframes slideLeft {
-      to { transform: translateX(-120%); opacity: 0; }
-    }
-
-    @keyframes slideRight {
-      to { transform: translateX(120%); opacity: 0; }
     }
 
     img {
       max-width: 100%;
+      max-height: 160px;
       border-radius: 10px;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
+      object-fit: cover;
     }
 
     .word { font-size: 32px; font-weight: bold; }
     .meaning { font-size: 22px; color: #27ae60; }
     .example { font-size: 16px; color: #555; margin-top: 10px; font-style: italic; }
 
-    /* ===== NAV BUTTONS (CỐ ĐỊNH THEO CARD) ===== */
+    /* Triangle navigation buttons */
     .nav-btn {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      border: none;
-      background: rgba(52, 152, 219, 0.95);
-      color: white;
-      font-size: 22px;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      background: transparent;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.25);
-      z-index: 5; /* 👈 luôn trên card */
+      z-index: 10;
+      filter: drop-shadow(0 8px 14px rgba(0,0,0,0.35));
     }
 
-    .nav-btn.left { left: -52px; }
-    .nav-btn.right { right: -52px; }
+    .nav-btn.left {
+      border-width: 110px 150px 110px 0;
+      border-color: transparent rgba(52,152,219,0.95) transparent transparent;
+      left: -190px;
+    }
 
-    .nav-btn:active {
-      transform: translateY(-50%) scale(0.95);
+    .nav-btn.right {
+      border-width: 110px 0 110px 150px;
+      border-color: transparent transparent transparent rgba(52,152,219,0.95);
+      right: -190px;
+    }
+
+    .loading {
+      font-size: 18px;
+      color: #555;
     }
   </style>
 </head>
+
 <body>
 
 <div class="container">
+  <button class="nav-btn left" aria-label="Previous"></button>
 
-  <button class="nav-btn left" onclick="prevCard(); event.stopPropagation();">◀</button>
-
-  <div id="slideWrapper" class="slide-wrapper">
-    <div id="cardWrapper" class="card-wrapper" onclick="flipCard()">
-      <div class="card-face" id="front"></div>
-      <div class="card-face card-back" id="back"></div>
+  <div class="slide-wrapper">
+    <div class="card-wrapper">
+      <div class="card-face card-front loading">Đang tải dữ liệu…</div>
+      <div class="card-face card-back loading">Vui lòng đợi</div>
     </div>
   </div>
 
-  <button class="nav-btn right" onclick="nextCard(); event.stopPropagation();">▶</button>
-
+  <button class="nav-btn right" aria-label="Next"></button>
 </div>
 
 <script>
+  const slideWrapper = document.querySelector('.slide-wrapper');
+  const cardWrapper = document.querySelector('.card-wrapper');
+  const front = document.querySelector('.card-front');
+  const back = document.querySelector('.card-back');
+  const btnPrev = document.querySelector('.nav-btn.left');
+  const btnNext = document.querySelector('.nav-btn.right');
+
   const sheetURL = "https://docs.google.com/spreadsheets/d/1vmqYN5_0lku8q97oxQP3ppQLtSOxTZtL_L0fnAPnF2Y/edit?usp=sharing";
 
   function extractSheetId(url) {
@@ -152,65 +184,90 @@
   let index = 0;
   let flipped = false;
 
+  function renderCard() {
+    if (!words.length) return;
+    const w = words[index] || {};
+
+    front.innerHTML = `
+      ${w.image ? `<img src="${w.image}" alt="">` : ''}
+      <div class="word">${w.en || ''}</div>
+      <p>(Chạm để lật thẻ)</p>`;
+
+    back.innerHTML = `
+      <div class="meaning">${w.vi || ''}</div>
+      <div class="example">${w.example || ''}</div>`;
+  }
+
+  function flipCard() {
+    if (!words.length || slideWrapper.classList.contains('sliding')) return;
+    flipped = !flipped;
+    cardWrapper.classList.toggle('flipped', flipped);
+  }
+
+  function slideTo(dir) {
+    if (!words.length || slideWrapper.classList.contains('sliding')) return;
+
+    slideWrapper.classList.add('sliding');
+
+    slideWrapper.classList.remove('slide-left', 'slide-right');
+    void slideWrapper.offsetWidth;
+
+    const slideClass = dir === 1 ? 'slide-left' : 'slide-right';
+    slideWrapper.classList.add(slideClass);
+
+    setTimeout(() => {
+      index = (index + dir + words.length) % words.length;
+      flipped = false;
+      cardWrapper.classList.remove('flipped');
+      renderCard();
+    }, 260);
+
+    setTimeout(() => {
+      slideWrapper.classList.remove(slideClass, 'sliding');
+    }, 520);
+  }
+
+  btnNext.addEventListener('click', e => { e.stopPropagation(); slideTo(1); });
+  btnPrev.addEventListener('click', e => { e.stopPropagation(); slideTo(-1); });
+  cardWrapper.addEventListener('click', flipCard);
+
+  // Swipe mobile
+  let startX = 0;
+  let startY = 0;
+
+  slideWrapper.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  });
+
+  slideWrapper.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+      slideTo(dx < 0 ? 1 : -1);
+    }
+  });
+
   fetch(apiURL)
     .then(res => res.text())
     .then(text => {
       const json = JSON.parse(text.substring(47, text.length - 2));
       words = json.table.rows.map(r => ({
-        en: r.c[1]?.v || "",
-        vi: r.c[2]?.v || "",
-        example: r.c[3]?.v || "",
-        image: r.c[4]?.v || ""
+        en: r.c?.[1]?.v || '',
+        vi: r.c?.[2]?.v || '',
+        example: r.c?.[3]?.v || '',
+        image: r.c?.[4]?.v || ''
       })).filter(w => w.en);
 
+      if (!words.length) throw new Error('Sheet không có dữ liệu hợp lệ');
       renderCard();
+    })
+    .catch(err => {
+      front.innerHTML = '<b>Lỗi tải Google Sheet</b>';
+      back.innerHTML = err.message;
+      console.error(err);
     });
-
-  function renderCard() {
-    const w = words[index];
-    front.innerHTML = `
-      ${w.image ? `<img src="${w.image}">` : ""}
-      <div class="word">${w.en}</div>
-      <p>(Click để lật thẻ)</p>`;
-
-    back.innerHTML = `
-      <div class="meaning">${w.vi}</div>
-      <div class="example">${w.example}</div>`;
-  }
-
-  function flipCard() {
-    flipped = !flipped;
-    cardWrapper.classList.toggle("flipped", flipped);
-  }
-
-  function nextCard() { slideTo(1); }
-  function prevCard() { slideTo(-1); }
-
-  function slideTo(direction) {
-    slideWrapper.classList.add(direction === 1 ? "slide-left" : "slide-right");
-
-    setTimeout(() => {
-      index = (index + direction + words.length) % words.length;
-      flipped = false;
-      cardWrapper.classList.remove("flipped");
-      renderCard();
-      slideWrapper.classList.remove("slide-left", "slide-right");
-    }, 300);
-  }
-
-  /* ===== SWIPE MOBILE ===== */
-  let startX = 0;
-
-  cardWrapper.addEventListener("touchstart", e => {
-    startX = e.touches[0].clientX;
-  });
-
-  cardWrapper.addEventListener("touchend", e => {
-    const diff = e.changedTouches[0].clientX - startX;
-    if (Math.abs(diff) > 50) diff < 0 ? nextCard() : prevCard();
-  });
-
-  console.assert(extractSheetId(sheetURL), "Sheet ID invalid");
 </script>
 
 </body>
