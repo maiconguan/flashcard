@@ -6,289 +6,153 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f7fb;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      overflow: hidden;
-    }
+    body { font-family: Arial, sans-serif; background: #f5f7fb; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
 
-    .user-name {
-      position: absolute;
-      top: -48px;
-      width: 100%;
-      text-align: center;
-      font-weight: bold;
-      font-size: 18px;
-      color: #2c3e50;
-    }
+    .user-name { position: absolute; top: -48px; width: 100%; text-align: center; font-weight: bold; font-size: 18px; color: #2c3e50; }
 
-    .container {
-      width: 300px;
-      height: 460px;
-      position: relative;
-      perspective: 1200px;
-    }
+    .container { width: 300px; height: 460px; position: relative; perspective: 1200px; }
 
-    .slide-wrapper {
-      width: 100%;
-      height: 100%;
-      position: relative;
-    }
-
-    .slide-wrapper::before {
-      content: '';
-      position: absolute;
-      inset: 12px;
-      background: #fff;
-      border-radius: 14px;
-      box-shadow: 0 10px 22px rgba(0,0,0,0.12);
-      z-index: 0;
-      transform: scale(0.96);
-    }
-
+    .slide-wrapper { width: 100%; height: 100%; position: relative; }
+    .slide-wrapper::before { content: ''; position: absolute; inset: 12px; background: #fff; border-radius: 14px; box-shadow: 0 10px 22px rgba(0,0,0,0.12); z-index: 0; transform: scale(0.96); }
     .slide-wrapper.slide-left { animation: slideLeft 0.45s ease; }
     .slide-wrapper.slide-right { animation: slideRight 0.45s ease; }
 
-    @keyframes slideLeft {
-      from { transform: translateX(0) scale(1); opacity: 1; }
-      to { transform: translateX(-120px) scale(0.92); opacity: 0; }
-    }
+    @keyframes slideLeft { from { transform: translateX(0) scale(1); opacity: 1; } to { transform: translateX(-120px) scale(0.92); opacity: 0; } }
+    @keyframes slideRight { from { transform: translateX(0) scale(1); opacity: 1; } to { transform: translateX(120px) scale(0.92); opacity: 0; } }
 
-    @keyframes slideRight {
-      from { transform: translateX(0) scale(1); opacity: 1; }
-      to { transform: translateX(120px) scale(0.92); opacity: 0; }
-    }
+    .card-wrapper { width: 100%; height: 100%; position: absolute; inset: 0; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); cursor: pointer; z-index: 2; }
+    .card-wrapper.flipped { transform: rotateY(180deg); }
 
-    .card-wrapper {
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      inset: 0;
-      transform-style: preserve-3d;
-      transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
-      cursor: pointer;
-      z-index: 2;
-    }
+    .card-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 14px; padding: 22px; box-shadow: 0 12px 28px rgba(0,0,0,0.18); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; box-sizing: border-box; }
+    .card-front { background: linear-gradient(135deg, #e3f2fd, #ffffff); border: 2px solid #3498db; }
+    .card-back { background: linear-gradient(135deg, #e8f8f0, #ffffff); border: 2px solid #27ae60; transform: rotateY(180deg); }
 
-    .card-wrapper.flipped {
-      transform: rotateY(180deg);
-    }
-
-    .card-face {
-      position: absolute;
-      inset: 0;
-      backface-visibility: hidden;
-      border-radius: 14px;
-      padding: 22px;
-      box-shadow: 0 12px 28px rgba(0,0,0,0.18);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      box-sizing: border-box;
-    }
-
-    .card-front {
-      background: linear-gradient(135deg, #e3f2fd, #ffffff);
-      border: 2px solid #3498db;
-    }
-
-    .card-back {
-      background: linear-gradient(135deg, #e8f8f0, #ffffff);
-      border: 2px solid #27ae60;
-      transform: rotateY(180deg);
-    }
-
-    img {
-      max-width: 100%;
-      max-height: 160px;
-      border-radius: 10px;
-      margin-bottom: 12px;
-      object-fit: cover;
-    }
+    img { max-width: 100%; max-height: 160px; border-radius: 10px; margin-bottom: 12px; object-fit: cover; }
 
     .word { font-size: 32px; font-weight: bold; }
     .meaning { font-size: 22px; color: #27ae60; }
     .example { font-size: 16px; color: #555; margin-top: 10px; font-style: italic; }
 
-    .nav-btn {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 0;
-      height: 0;
-      border-style: solid;
-      cursor: pointer;
-      z-index: 10;
-      background: transparent;
-    }
+    .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-style: solid; cursor: pointer; z-index: 10; background: transparent; }
+    .nav-btn.left { border-width: 90px 120px 90px 0; border-color: transparent rgba(52,152,219,0.95) transparent transparent; left: -160px; }
+    .nav-btn.right { border-width: 90px 0 90px 120px; border-color: transparent transparent transparent rgba(52,152,219,0.95); right: -160px; }
 
-    .nav-btn.left {
-      border-width: 90px 120px 90px 0;
-      border-color: transparent rgba(52,152,219,0.95) transparent transparent;
-      left: -160px;
-    }
+    .add-btn { margin-top: 16px; padding: 12px 18px; font-size: 15px; border-radius: 999px; border: none; background: linear-gradient(135deg, #43e97b, #38f9d7); color: #064635; font-weight: 600; cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,0.25); }
 
-    .nav-btn.right {
-      border-width: 90px 0 90px 120px;
-      border-color: transparent transparent transparent rgba(52,152,219,0.95);
-      right: -160px;
-    }
-
-    .loading { font-size: 18px; color: #555; }
+    /* popup */
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: center; justify-content: center; z-index: 20; }
+    .modal.active { display: flex; }
+    .modal-content { background: white; width: 92%; max-width: 420px; padding: 20px; border-radius: 16px; }
+    .modal-content h3 { margin-top: 0; }
+    .modal-content input, .modal-content textarea { width: 100%; margin-bottom: 12px; padding: 10px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
   </style>
 </head>
-
 <body>
 
 <div class="container">
   <div class="user-name" id="userName"></div>
-  <button class="nav-btn left" aria-label="Previous"></button>
+  <button class="nav-btn left" aria-label="Previous" id="btnPrev"></button>
 
   <div class="slide-wrapper">
-    <div class="card-wrapper">
+    <div class="card-wrapper" id="cardWrapper">
       <div class="card-face card-front loading">Đang tải dữ liệu…</div>
       <div class="card-face card-back loading">Vui lòng đợi</div>
     </div>
   </div>
 
-  <button class="nav-btn right" aria-label="Next"></button>
+  <button class="nav-btn right" aria-label="Next" id="btnNext"></button>
+  <div class="actions">
+    <button class="add-btn" onclick="openModal()">➕ Thêm từ mới</button>
+  </div>
+</div>
+
+<!-- Popup -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <h3>Thêm từ mới</h3>
+    <input id="en" placeholder="English word" />
+    <input id="vi" placeholder="Nghĩa tiếng Việt" />
+    <textarea id="example" placeholder="Ví dụ"></textarea>
+    <input id="image" placeholder="Image URL" />
+    <div class="modal-actions">
+      <button onclick="submitWord()">Lưu</button>
+      <button onclick="closeModal()">Hủy</button>
+    </div>
+  </div>
 </div>
 
 <script>
   const slideWrapper = document.querySelector('.slide-wrapper');
-  const cardWrapper = document.querySelector('.card-wrapper');
+  const cardWrapper = document.querySelector('#cardWrapper');
   const front = document.querySelector('.card-front');
   const back = document.querySelector('.card-back');
-  const btnPrev = document.querySelector('.nav-btn.left');
-  const btnNext = document.querySelector('.nav-btn.right');
+  const btnPrev = document.getElementById('btnPrev');
+  const btnNext = document.getElementById('btnNext');
+  const userNameDiv = document.getElementById('userName');
 
-  const sheetURL = "https://docs.google.com/spreadsheets/d/1vmqYN5_0lku8q97oxQP3ppQLtSOxTZtL_L0fnAPnF2Y/edit?usp=sharing";
-
-  function extractSheetId(url) {
-    const match = url.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-    return match ? match[1] : null;
-  }
-
-  const sheetId = extractSheetId(sheetURL);
-  const apiURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
-
-  let words = [];
-  let lastHash = '';
-  let index = 0;
-  let flipped = false;
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzTr7xseMLKYE-vqLMujMxjtNZRKxf3JnX9WufbAAlm8fXU74Rn6egSD_eFe-CJBWNd/exec';
+  const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1vmqYN5_0lku8q97oxQP3ppQLtSOxTZtL_L0fnAPnF2Y/edit?usp=sharing';
 
   const params = new URLSearchParams(window.location.search);
   const currentUser = params.get('user');
-  const userNameDiv = document.getElementById('userName');
+  if(userNameDiv) userNameDiv.textContent = currentUser ? `👤 ${currentUser.split('@')[0]}` : '👤 Guest';
 
-  if (userNameDiv) {
-    userNameDiv.textContent = currentUser
-      ? `👤 ${currentUser.split('@')[0]}`
-      : '👤 Guest';
-  }
+  function extractSheetId(url) { const match = url.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/); return match ? match[1] : null; }
+  const sheetId = extractSheetId(SHEET_URL);
+  const apiURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
 
-  function getVisibleWords() {
-    return currentUser ? words.filter(w => w.owner === currentUser) : words;
-  }
+  let words = [], lastHash = '', index = 0, flipped = false;
+
+  function getVisibleWords() { return currentUser ? words.filter(w => w.owner === currentUser || w.owner === 'admin') : words; }
 
   function renderCard() {
     const visibleWords = getVisibleWords();
-
-    if (!visibleWords.length) {
-      front.innerHTML = '<b>Chưa có từ vựng</b>';
-      back.innerHTML = 'Vui lòng thêm từ mới';
-      return;
-    }
-
+    if (!visibleWords.length) { front.innerHTML = '<b>Chưa có từ vựng</b>'; back.innerHTML = 'Vui lòng thêm từ mới'; return; }
     index = index % visibleWords.length;
     const w = visibleWords[index];
-
-    front.innerHTML = `
-      ${w.image ? `<img src="${w.image}" alt="">` : ''}
-      <div class="word">${w.en}</div>
-      <p>(Chạm để lật thẻ)</p>`;
-
-    back.innerHTML = `
-      <div class="meaning">${w.vi}</div>
-      <div class="example">${w.example || ''}</div>`;
+    front.innerHTML = `${w.image ? `<img src="${w.image}" alt="">` : ''}<div class="word">${w.en}</div><p>(Chạm để lật thẻ)</p>`;
+    back.innerHTML = `<div class="meaning">${w.vi}</div><div class="example">${w.example || ''}</div>`;
   }
 
-  function flipCard() {
-    if (!words.length) return;
-    flipped = !flipped;
-    cardWrapper.classList.toggle('flipped', flipped);
-  }
+  function flipCard() { if(!words.length) return; flipped = !flipped; cardWrapper.classList.toggle('flipped', flipped); }
+  function slideTo(dir) { const visibleWords = getVisibleWords(); if(!visibleWords.length) return; slideWrapper.classList.remove('slide-left','slide-right'); void slideWrapper.offsetWidth; slideWrapper.classList.add(dir === 1 ? 'slide-left' : 'slide-right'); setTimeout(()=>{ index = (index + dir + visibleWords.length)%visibleWords.length; flipped = false; cardWrapper.classList.remove('flipped'); renderCard(); },260); }
 
-  function slideTo(dir) {
-    const visibleWords = getVisibleWords();
-    if (!visibleWords.length) return;
-
-    slideWrapper.classList.remove('slide-left', 'slide-right');
-    void slideWrapper.offsetWidth;
-
-    slideWrapper.classList.add(dir === 1 ? 'slide-left' : 'slide-right');
-
-    setTimeout(() => {
-      index = (index + dir + visibleWords.length) % visibleWords.length;
-      flipped = false;
-      cardWrapper.classList.remove('flipped');
-      renderCard();
-    }, 260);
-  }
-
-  btnNext.addEventListener('click', e => { e.stopPropagation(); slideTo(1); });
-  btnPrev.addEventListener('click', e => { e.stopPropagation(); slideTo(-1); });
+  btnNext.addEventListener('click', e=>{e.stopPropagation();slideTo(1);});
+  btnPrev.addEventListener('click', e=>{e.stopPropagation();slideTo(-1);});
   cardWrapper.addEventListener('click', flipCard);
-
-  let startX = 0;
-  slideWrapper.addEventListener('touchstart', e => startX = e.touches[0].clientX);
-  slideWrapper.addEventListener('touchend', e => {
-    const dx = e.changedTouches[0].clientX - startX;
-    if (Math.abs(dx) > 50) slideTo(dx < 0 ? 1 : -1);
-  });
+  let startX=0;
+  slideWrapper.addEventListener('touchstart',e=>startX=e.touches[0].clientX);
+  slideWrapper.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-startX;if(Math.abs(dx)>50) slideTo(dx<0?1:-1);});
 
   function fetchSheetData() {
     const noCacheURL = apiURL + `&_ts=${Date.now()}`;
-
-    fetch(noCacheURL)
-      .then(res => res.text())
-      .then(text => {
-        const json = JSON.parse(text.substring(47, text.length - 2));
-        const newWords = json.table.rows
-          .map(r => ({
-            time: r.c?.[0]?.v || '',
-            owner: r.c?.[1]?.v || '',
-            en: r.c?.[2]?.v || '',
-            vi: r.c?.[3]?.v || '',
-            example: r.c?.[4]?.v || '',
-            image: r.c?.[5]?.v || ''
-          }))
-          .filter(w => w.en);
-
-        const hash = JSON.stringify(newWords);
-        if (hash !== lastHash) {
-          lastHash = hash;
-          words = newWords;
-          index = 0;
-          renderCard();
-        }
-      })
-      .catch(err => {
-        front.innerHTML = '<b>Lỗi tải Google Sheet</b>';
-        back.innerHTML = err.message;
-        console.error(err);
-      });
+    fetch(noCacheURL).then(res=>res.text()).then(text=>{
+      const json = JSON.parse(text.substring(47,text.length-2));
+      const newWords = json.table.rows.map(r=>({
+        time: r.c?.[0]?.v||'', owner:r.c?.[1]?.v||'', en:r.c?.[2]?.v||'', vi:r.c?.[3]?.v||'', example:r.c?.[4]?.v||'', image:r.c?.[5]?.v||''
+      })).filter(w=>w.en);
+      const hash = JSON.stringify(newWords);
+      if(hash!==lastHash){ lastHash=hash; words=newWords; index=0; renderCard(); }
+    }).catch(err=>{ front.innerHTML='<b>Lỗi tải Google Sheet</b>'; back.innerHTML=err.message; console.error(err); });
   }
 
-  fetchSheetData();
-  setInterval(fetchSheetData, 5000);
+  fetchSheetData(); setInterval(fetchSheetData,5000);
+
+  // Popup functions
+  function openModal(){ document.getElementById('modal').classList.add('active'); }
+  function closeModal(){ document.getElementById('modal').classList.remove('active'); }
+
+  function submitWord(){
+    const enVal=document.getElementById('en').value.trim();
+    const viVal=document.getElementById('vi').value.trim();
+    const exampleVal=document.getElementById('example').value.trim();
+    const imageVal=document.getElementById('image').value.trim();
+    if(!enVal||!viVal){ alert('Vui lòng nhập ít nhất từ tiếng Anh và nghĩa'); return; }
+    const data={ time:new Date().toISOString(), owner:currentUser||'default', en:enVal, vi:viVal, example:exampleVal, image:imageVal };
+    fetch(SCRIPT_URL,{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) })
+      .then(res=>res.text()).then(()=>{ closeModal(); document.getElementById('en').value=''; document.getElementById('vi').value=''; document.getElementById('example').value=''; document.getElementById('image').value=''; fetchSheetData(); })
+      .catch(()=>alert('Lỗi khi thêm từ mới'));
+  }
 </script>
 
 </body>
