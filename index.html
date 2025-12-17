@@ -161,6 +161,26 @@
       color: #fff;
       box-shadow: 0 4px 12px rgba(52,152,219,0.35);
     }
+    .sound-btn {
+      position: absolute;
+      top: -46px;
+      right: 0;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: none;
+      background: #3498db;
+      color: #fff;
+      font-size: 20px;
+      cursor: pointer;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+      z-index: 20;
+    }
+
+.sound-btn:active {
+  transform: scale(0.92);
+}
+
 
 
 
@@ -171,6 +191,7 @@
 
 <div class="container">
   <div class="user-name" id="userName"></div>
+  <button class="sound-btn" id="soundBtn" title="Nghe phát âm">🔊</button>
   <button class="nav-btn left" aria-label="Previous" id="btnPrev"></button>
 
   <div class="slide-wrapper">
@@ -414,6 +435,29 @@
       alert('Lỗi: ' + err.message);
     });
 }
+
+  const soundBtn = document.getElementById('soundBtn');
+
+function speakWord(text) {
+  if (!('speechSynthesis' in window)) {
+    alert('Trình duyệt không hỗ trợ phát âm');
+    return;
+  }
+
+  window.speechSynthesis.cancel();
+
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'en-US';
+  utter.rate = 0.9;
+  utter.pitch = 1;
+
+  window.speechSynthesis.speak(utter);
+}
+
+soundBtn.onclick = (e) => {
+  e.stopPropagation(); // không làm flip card
+  speakWord(w.en);
+};
 
 
 
