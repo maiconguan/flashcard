@@ -180,7 +180,12 @@
   })
   .then(() => {
     alert('Đã thêm từ mới!');
-    loadSheet();
+    closeModal(); 
+    document.getElementById('en').value=''; 
+    document.getElementById('vi').value=''; 
+    document.getElementById('example').value=''; 
+    document.getElementById('image').value=''; 
+    fetchSheetData();
   })
   .catch(err => {
     console.error(err);
