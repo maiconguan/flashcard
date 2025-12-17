@@ -164,7 +164,7 @@
     document.getElementById('image').value = w.image;
     document.getElementById('modal').classList.add('active');
 
-    alert('editingRowIndex: ' + editingRowIndex);
+    //alert('editingRowIndex: ' + editingRowIndex);
   }
 
   
@@ -178,7 +178,7 @@
     vi: document.getElementById('vi').value.trim(),
     example: document.getElementById('example').value.trim(),
     image: document.getElementById('image').value.trim(),
-    rowIndex: editingRowIndex // truyền rowIndex để biết update
+    rowNumber: editingRowIndex // truyền rowIndex để biết update
   };
 
   if (!data.en || !data.vi) {
