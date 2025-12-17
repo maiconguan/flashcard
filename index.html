@@ -456,6 +456,10 @@ function speakWord(text) {
 
 soundBtn.onclick = (e) => {
   e.stopPropagation(); // không làm flip card
+  const visibleWords = getVisibleWords();
+    if (!visibleWords.length) return;
+  
+    const w = visibleWords[index];
   speakWord(w.en);
 };
 
