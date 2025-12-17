@@ -106,6 +106,43 @@
       background: linear-gradient(135deg, #667eea, #764ba2);
       color: white;
     }
+    .card-footer {
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    /* giữ nút trên cùng */
+    .actions {
+      display: flex;
+      gap: 12px;
+    }
+    
+    /* 3 nút mode nằm dưới */
+    .display-mode {
+      display: flex;
+      gap: 8px;
+    }
+    
+    /* chống đè nav */
+    .container {
+      padding-bottom: 120px;
+    }
+    .display-mode button {
+      border-radius: 0;
+    }
+    
+    .display-mode button:first-child {
+      border-radius: 999px 0 0 999px;
+    }
+    
+    .display-mode button:last-child {
+      border-radius: 0 999px 999px 0;
+    }
+
+
 
   </style>
 </head>
@@ -123,18 +160,25 @@
   </div>
 
   <button class="nav-btn right" aria-label="Next" id="btnNext"></button>
-  <div class="actions">
-    <button class="add-btn" onclick="openAddModal()">➕ Thêm từ mới</button>
-    <button class="edit-btn" onclick="openEditModal()">✏️ Chỉnh sửa</button>
+  
+<div class="container">
+  <!-- card + nav buttons giữ nguyên -->
+
+  <!-- FOOTER -->
+  <div class="card-footer">
+    <div class="actions">
+      <button class="add-btn" onclick="openAddModal()">➕ Thêm từ mới</button>
+      <button class="edit-btn" onclick="openEditModal()">✏️ Chỉnh sửa</button>
+    </div>
+
+    <div class="display-mode">
+      <button onclick="setDisplayMode('order')">📄 Theo Sheet</button>
+      <button onclick="setDisplayMode('alphabet')">🔤 A → Z</button>
+      <button onclick="setDisplayMode('random')">🎲 Ngẫu nhiên</button>
+    </div>
   </div>
 </div>
 
-<!-- NEW: display mode buttons -->
-<div class="display-mode">
-  <button onclick="setDisplayMode('order')">📄 Theo Time</button>
-  <button onclick="setDisplayMode('alphabet')">🔤 A → Z</button>
-  <button onclick="setDisplayMode('random')">🎲 Ngẫu nhiên</button>
-</div>
 
 
 <!-- Popup -->
