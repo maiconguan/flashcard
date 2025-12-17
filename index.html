@@ -104,7 +104,7 @@
 
   let words = [], lastHash = '', index = 0, flipped = false;
 
-  function getVisibleWords() { return currentUser ? words.filter(w => w.owner === currentUser || w.owner === 'admin') : words; }
+  function getVisibleWords() { return currentUser ? words.filter(w => w.owner === currentUser || w.owner === 'All') : words; }
 
   function renderCard() {
     const visibleWords = getVisibleWords();
@@ -129,7 +129,8 @@
     const noCacheURL = apiURL + `&_ts=${Date.now()}`;
     fetch(noCacheURL).then(res=>res.text()).then(text=>{
       const json = JSON.parse(text.substring(47,text.length-2));
-      const newWords = json.table.rows.map(r=>({
+      const newWords = json.table.rows.map((r,i)=>({
+        rowNumber: i + 2, // dòng trong sheet (dòng 1 header)
         time: r.c?.[0]?.v||'', owner:r.c?.[1]?.v||'', en:r.c?.[2]?.v||'', vi:r.c?.[3]?.v||'', example:r.c?.[4]?.v||'', image:r.c?.[5]?.v||''
       })).filter(w=>w.en);
       const hash = JSON.stringify(newWords);
@@ -155,7 +156,7 @@
     if (!visibleWords.length) return;
   
     const w = visibleWords[index];
-    editingRowIndex = index;
+    editingRowNumber = w.rowNumber; // lưu row thực
   
     document.getElementById('en').value = w.en;
     document.getElementById('vi').value = w.vi;
@@ -168,21 +169,6 @@
 
   
   function closeModal(){ document.getElementById('modal').classList.remove('active'); }
-
-  // function submitWord(){
-  //   const enVal=document.getElementById('en').value.trim();
-  //   const viVal=document.getElementById('vi').value.trim();
-  //   const exampleVal=document.getElementById('example').value.trim();
-  //   const imageVal=document.getElementById('image').value.trim();
-  //   if(!enVal||!viVal){ alert('Vui lòng nhập ít nhất từ tiếng Anh và nghĩa'); return; }
-  //   const data={ time:new Date().toISOString(), owner:currentUser||'default', en:enVal, vi:viVal, example:exampleVal, image:imageVal };
-    
-  //   fetch(SCRIPT_URL,{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) })
-  //     .then(res=>res.text()).then(()=>{ closeModal(); document.getElementById('en').value=''; document.getElementById('vi').value=''; document.getElementById('example').value=''; document.getElementById('image').value=''; fetchSheetData(); })
-  //     .catch(()=>alert('Lỗi khi thêm từ mới'));
-
-    
-  // }
 
   function submitWord() {
   const data = {
