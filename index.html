@@ -141,6 +141,27 @@
     .display-mode button:last-child {
       border-radius: 0 999px 999px 0;
     }
+    .mode-btn {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 2px solid #3498db;
+      background: #fff;
+      color: #3498db;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .mode-btn:hover {
+      background: #ecf5ff;
+    }
+    
+    .mode-btn.active {
+      background: #3498db;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(52,152,219,0.35);
+    }
+
 
 
 
@@ -172,10 +193,13 @@
     </div>
 
     <div class="display-mode">
-      <button onclick="setDisplayMode('order')">📄 Theo Sheet</button>
-      <button onclick="setDisplayMode('alphabet')">🔤 A → Z</button>
-      <button onclick="setDisplayMode('random')">🎲 Ngẫu nhiên</button>
-    </div>
+      <button data-mode="order" class="mode-btn active"
+              onclick="setDisplayMode('order')">📄 Theo Sheet</button>
+      <button data-mode="alphabet" class="mode-btn"
+              onclick="setDisplayMode('alphabet')">🔤 A → Z</button>
+      <button data-mode="random" class="mode-btn"
+              onclick="setDisplayMode('random')">🎲 Ngẫu nhiên</button>
+   </div>
   </div>
 </div>
 
@@ -275,8 +299,38 @@
   
   function setDisplayMode(mode) {
     displayMode = mode;
-    fetchSheetData(); // reload lại dữ liệu theo chế độ mới
+  
+    // highlight button
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.mode === mode);
+    });
+  
+    applyDisplayMode();
   }
+
+  function applyDisplayMode() {
+    let visibleWords = getVisibleWords().slice(); // copy mảng
+  
+    if (displayMode === 'alphabet') {
+      visibleWords.sort((a, b) => a.en.localeCompare(b.en));
+    }
+  
+    if (displayMode === 'random') {
+      for (let i = visibleWords.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [visibleWords[i], visibleWords[j]] =
+        [visibleWords[j], visibleWords[i]];
+      }
+    }
+  
+    words = visibleWords;
+    index = 0;
+    flipped = false;
+    cardWrapper.classList.remove('flipped');
+    renderCard();
+  }
+
+
 
 
 
