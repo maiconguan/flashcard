@@ -208,40 +208,47 @@
   function closeModal(){ document.getElementById('modal').classList.remove('active'); }
 
   function submitWord() {
-  const data = {
-    time: new Date().toISOString(),
-    owner: currentUser || 'All',
-    en: document.getElementById('en').value.trim(),
-    vi: document.getElementById('vi').value.trim(),
-    example: document.getElementById('example').value.trim(),
-    image: document.getElementById('image').value.trim(),
-    rowNumber: editingRowIndex // truyền rowIndex để biết update
-  };
 
-  if (!data.en || !data.vi) {
-    alert('Vui lòng nhập ít nhất từ tiếng Anh và nghĩa tiếng Việt');
-    return;
-  }
+      // Lấy owner cũ nếu đang edit
+    let owner = editingRowIndex != null ? words.find(w => w.rowNumber === editingRowNumber)?.owner : null;
+  
+    // Nếu đang thêm mới hoặc owner khác 'All', set owner = currentUser
+    if (!owner) owner = currentUser || 'All';
+      
+    const data = {
+      time: new Date().toISOString(),
+      owner: currentUser || 'All',
+      en: document.getElementById('en').value.trim(),
+      vi: document.getElementById('vi').value.trim(),
+      example: document.getElementById('example').value.trim(),
+      image: document.getElementById('image').value.trim(),
+      rowNumber: editingRowIndex // truyền rowIndex để biết update
+    };
 
-  fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    mode: 'no-cors',   // 👈 thêm để bypass CORS
-    body: JSON.stringify(data)
-  })
-  .then(() => {
-    alert('Đã lưu thành công!');
-    closeModal(); 
-    document.getElementById('en').value=''; 
-    document.getElementById('vi').value=''; 
-    document.getElementById('example').value=''; 
-    document.getElementById('image').value=''; 
-    fetchSheetData();
-  })
-  .catch(err => {
-    console.error(err);
-    alert('Lỗi: ' + err.message);
-  });
+    if (!data.en || !data.vi) {
+      alert('Vui lòng nhập ít nhất từ tiếng Anh và nghĩa tiếng Việt');
+      return;
+    }
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      mode: 'no-cors',   // 👈 thêm để bypass CORS
+      body: JSON.stringify(data)
+    })
+    .then(() => {
+      alert('Đã lưu thành công!');
+      closeModal(); 
+      document.getElementById('en').value=''; 
+      document.getElementById('vi').value=''; 
+      document.getElementById('example').value=''; 
+      document.getElementById('image').value=''; 
+      fetchSheetData();
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Lỗi: ' + err.message);
+    });
 }
 
 
