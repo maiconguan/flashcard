@@ -62,7 +62,8 @@
 
   <button class="nav-btn right" aria-label="Next" id="btnNext"></button>
   <div class="actions">
-    <button class="add-btn" onclick="openModal()">➕ Thêm từ mới</button>
+    <button class="add-btn" onclick="openAddModal()">➕ Thêm từ mới</button>
+    <button class="edit-btn" onclick="openEditModal()">✏️ Chỉnh sửa</button>
   </div>
 </div>
 
@@ -139,7 +140,31 @@
   fetchSheetData(); setInterval(fetchSheetData,5000);
 
   // Popup functions
-  function openModal(){ document.getElementById('modal').classList.add('active'); }
+  let editingRowIndex = null; // lưu index của từ đang edit
+  function openAddModal() {
+    editingRowIndex = null; // thêm mới → không edit
+    document.getElementById('en').value = '';
+    document.getElementById('vi').value = '';
+    document.getElementById('example').value = '';
+    document.getElementById('image').value = '';
+    document.getElementById('modal').classList.add('active');
+  }
+
+  function openEditModal() {
+    const visibleWords = getVisibleWords();
+    if (!visibleWords.length) return;
+  
+    const w = visibleWords[index];
+    editingRowIndex = index;
+  
+    document.getElementById('en').value = w.en;
+    document.getElementById('vi').value = w.vi;
+    document.getElementById('example').value = w.example;
+    document.getElementById('image').value = w.image;
+    document.getElementById('modal').classList.add('active');
+  }
+
+  
   function closeModal(){ document.getElementById('modal').classList.remove('active'); }
 
   // function submitWord(){
@@ -164,7 +189,8 @@
     en: document.getElementById('en').value.trim(),
     vi: document.getElementById('vi').value.trim(),
     example: document.getElementById('example').value.trim(),
-    image: document.getElementById('image').value.trim()
+    image: document.getElementById('image').value.trim(),
+    rowIndex: editingRowIndex // truyền rowIndex để biết update
   };
 
   if (!data.en || !data.vi) {
