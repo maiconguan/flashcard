@@ -70,7 +70,7 @@
 <!-- Popup -->
 <div class="modal" id="modal">
   <div class="modal-content">
-    <h3>Thêm từ mới</h3>
+    <h3 id="modalTitle">Thêm từ mới</h3>
     <input id="en" placeholder="English word" />
     <input id="vi" placeholder="Nghĩa tiếng Việt" />
     <textarea id="example" placeholder="Ví dụ"></textarea>
@@ -144,6 +144,8 @@
   let editingRowIndex = null; // lưu index của từ đang edit
   function openAddModal() {
     editingRowIndex = null; // thêm mới → không edit
+    
+    document.getElementById('modalTitle').textContent = "➕ Thêm từ mới"; // đổi title
     document.getElementById('en').value = '';
     document.getElementById('vi').value = '';
     document.getElementById('example').value = '';
@@ -157,7 +159,8 @@
   
     const w = visibleWords[index];
     editingRowIndex = w.rowNumber; // lưu row thực
-  
+    
+    document.getElementById('modalTitle').textContent = "✏️ Chỉnh sửa từ"; // đổi title
     document.getElementById('en').value = w.en;
     document.getElementById('vi').value = w.vi;
     document.getElementById('example').value = w.example;
