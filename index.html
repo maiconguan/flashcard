@@ -142,17 +142,57 @@
   function openModal(){ document.getElementById('modal').classList.add('active'); }
   function closeModal(){ document.getElementById('modal').classList.remove('active'); }
 
-  function submitWord(){
-    const enVal=document.getElementById('en').value.trim();
-    const viVal=document.getElementById('vi').value.trim();
-    const exampleVal=document.getElementById('example').value.trim();
-    const imageVal=document.getElementById('image').value.trim();
-    if(!enVal||!viVal){ alert('Vui lòng nhập ít nhất từ tiếng Anh và nghĩa'); return; }
-    const data={ time:new Date().toISOString(), owner:currentUser||'default', en:enVal, vi:viVal, example:exampleVal, image:imageVal };
-    fetch(SCRIPT_URL,{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) })
-      .then(res=>res.text()).then(()=>{ closeModal(); document.getElementById('en').value=''; document.getElementById('vi').value=''; document.getElementById('example').value=''; document.getElementById('image').value=''; fetchSheetData(); })
-      .catch(()=>alert('Lỗi khi thêm từ mới'));
+  // function submitWord(){
+  //   const enVal=document.getElementById('en').value.trim();
+  //   const viVal=document.getElementById('vi').value.trim();
+  //   const exampleVal=document.getElementById('example').value.trim();
+  //   const imageVal=document.getElementById('image').value.trim();
+  //   if(!enVal||!viVal){ alert('Vui lòng nhập ít nhất từ tiếng Anh và nghĩa'); return; }
+  //   const data={ time:new Date().toISOString(), owner:currentUser||'default', en:enVal, vi:viVal, example:exampleVal, image:imageVal };
+    
+  //   fetch(SCRIPT_URL,{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) })
+  //     .then(res=>res.text()).then(()=>{ closeModal(); document.getElementById('en').value=''; document.getElementById('vi').value=''; document.getElementById('example').value=''; document.getElementById('image').value=''; fetchSheetData(); })
+  //     .catch(()=>alert('Lỗi khi thêm từ mới'));
+
+    
+  // }
+
+  function submitWord() {
+  const data = {
+    time: new Date().toISOString(),
+    owner: currentUser || 'default',
+    en: document.getElementById('en').value.trim(),
+    vi: document.getElementById('vi').value.trim(),
+    example: document.getElementById('example').value.trim(),
+    image: document.getElementById('image').value.trim()
+  };
+
+  if (!data.en || !data.vi) {
+    alert('Vui lòng nhập ít nhất từ tiếng Anh và nghĩa');
+    return;
   }
+
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    mode: 'no-cors',   // 👈 thêm để bypass CORS
+    body: JSON.stringify(data)
+  })
+  .then(() => {
+    alert('Đã thêm từ mới!');
+    loadSheet();
+  })
+  .catch(err => {
+    console.error(err);
+    alert('Lỗi khi thêm từ mới: ' + err.message);
+  });
+}
+
+
+
+
+
+  
 </script>
 
 </body>
