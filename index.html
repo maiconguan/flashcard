@@ -79,6 +79,34 @@
       transform: translateY(-2px);
       box-shadow: 0 8px 20px rgba(0,0,0,0.3);
     }
+    .display-mode {
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .display-mode button {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: none;
+      font-size: 13px;
+      cursor: pointer;
+      background: rgba(255,255,255,0.85);
+      color: #333;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+      transition: all 0.2s ease;
+    }
+    
+    .display-mode button:hover {
+      transform: translateY(-1px);
+    }
+    
+    .display-mode button.active {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+    }
+
   </style>
 </head>
 <body>
@@ -101,10 +129,11 @@
   </div>
 </div>
 
+<!-- NEW: display mode buttons -->
 <div class="display-mode">
-  <button onclick="setDisplayMode('order')">Theo thoi gian</button>
-  <button onclick="setDisplayMode('alphabet')">A → Z</button>
-  <button onclick="setDisplayMode('random')">Ngẫu nhiên</button>
+  <button onclick="setDisplayMode('order')">📄 Theo Time</button>
+  <button onclick="setDisplayMode('alphabet')">🔤 A → Z</button>
+  <button onclick="setDisplayMode('random')">🎲 Ngẫu nhiên</button>
 </div>
 
 
