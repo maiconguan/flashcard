@@ -210,7 +210,7 @@
   function submitWord() {
 
       // Lấy owner cũ nếu đang edit
-    let owner = editingRowIndex != null ? words.find(w => w.rowNumber === editingRowNumber)?.owner : null;
+    let owner = editingRowIndex != null ? words.find(w => w.rowNumber === editingRowIndex)?.owner : null;
   
     // Nếu đang thêm mới hoặc owner khác 'All', set owner = currentUser
     if (!owner) owner = currentUser || 'All';
