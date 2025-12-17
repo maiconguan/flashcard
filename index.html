@@ -275,10 +275,6 @@
       })).filter(w=>w.en);
       const hash = JSON.stringify(newWords);
       if(hash!==lastHash){ lastHash=hash; 
-                          // Áp dụng chế độ hiển thị
-                          if (displayMode === 'alphabet') newWords = sortAlphabetically(newWords);
-                          else if (displayMode === 'random') newWords = shuffleArray(newWords);
-                          // 'order' → giữ nguyên thứ tự trong Sheet
                           words=newWords; index=0; renderCard(); }
     }).catch(err=>{ front.innerHTML='<b>Lỗi tải Google Sheet</b>'; back.innerHTML=err.message; console.error(err); });
   }
@@ -309,26 +305,34 @@
   }
 
   function applyDisplayMode() {
-    let visibleWords = getVisibleWords().slice(); // copy mảng
-  
-    if (displayMode === 'alphabet') {
-      visibleWords.sort((a, b) => a.en.localeCompare(b.en));
-    }
-  
-    if (displayMode === 'random') {
-      for (let i = visibleWords.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [visibleWords[i], visibleWords[j]] =
-        [visibleWords[j], visibleWords[i]];
-      }
-    }
-  
-    words = visibleWords;
-    index = 0;
-    flipped = false;
-    cardWrapper.classList.remove('flipped');
-    renderCard();
+  let visibleWords = getVisibleWords().slice(); // clone mảng
+
+  if (displayMode === 'order') {
+    // Theo Sheet = theo time tăng dần
+    visibleWords.sort((a, b) => {
+      return new Date(a.time).getTime() - new Date(b.time).getTime();
+    });
   }
+
+  if (displayMode === 'alphabet') {
+    visibleWords.sort((a, b) => a.en.localeCompare(b.en));
+  }
+
+  if (displayMode === 'random') {
+    for (let i = visibleWords.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [visibleWords[i], visibleWords[j]] =
+      [visibleWords[j], visibleWords[i]];
+    }
+  }
+
+  words = visibleWords;
+  index = 0;
+  flipped = false;
+  cardWrapper.classList.remove('flipped');
+  renderCard();
+}
+
 
 
 
