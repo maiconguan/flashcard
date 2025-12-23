@@ -391,7 +391,7 @@ function fetchSheetData() {
     isFetching = true;
     
     const noCacheURL = apiURL + `&_ts=${Date.now()}`;
-    await fetch(noCacheURL).then(res=>res.text()).then(text=>{
+     fetch(noCacheURL).then(res=>res.text()).then(text=>{
         const json = JSON.parse(text.substring(47,text.length-2));
         const newWords = json.table.rows.map((r,i)=>({
             rowNumber: i + 2, // dòng trong sheet (dòng 1 header)
@@ -520,7 +520,7 @@ alert('Vui lòng nhập ít nhất từ tiếng Anh và nghĩa tiếng Việt');
 return;
 }
 
-await fetch(SCRIPT_URL, {
+ fetch(SCRIPT_URL, {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 mode: 'no-cors',   // 👈 thêm để bypass CORS
