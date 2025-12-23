@@ -327,7 +327,7 @@ function saveUser() {
     flipped = false;
     cardWrapper.classList.remove('flipped');
     
-    applyDisplayMode();
+    fetchSheetData();
 }
 
 function changeUser() {
@@ -339,7 +339,7 @@ function changeUser() {
     
     // Reset UI
     userNameDiv.textContent = '👤 Guest';
-    //words = [];
+    words = [];
     index = 0;
     flipped = false;
     cardWrapper.classList.remove('flipped');
@@ -385,10 +385,13 @@ slideWrapper.addEventListener('touchstart',e=>startX=e.touches[0].clientX);
 slideWrapper.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-startX;if(Math.abs(dx)>50) slideTo(dx<0?1:-1);});
 
 let displayMode = 'order'; // 'order', 'alphabet', 'random'
-
+let isFetching = false;
 function fetchSheetData() {
+    if (isFetching) return;
+    isFetching = true;
+    
     const noCacheURL = apiURL + `&_ts=${Date.now()}`;
-    fetch(noCacheURL).then(res=>res.text()).then(text=>{
+    await fetch(noCacheURL).then(res=>res.text()).then(text=>{
         const json = JSON.parse(text.substring(47,text.length-2));
         const newWords = json.table.rows.map((r,i)=>({
             rowNumber: i + 2, // dòng trong sheet (dòng 1 header)
@@ -402,10 +405,12 @@ function fetchSheetData() {
             index=0; 
             renderCard(); 
         }
-    }).catch(err=>{ front.innerHTML='<b>Lỗi tải Google Sheet</b>'; back.innerHTML=err.message; console.error(err); });
+    })
+    .catch(err=>{ front.innerHTML='<b>Lỗi tải Google Sheet</b>'; back.innerHTML=err.message; console.error(err); isFetching = false;})
+    .finally(() => isFetching = false);
 }
 
-fetchSheetData(); setInterval(fetchSheetData,5000);
+fetchSheetData(); //setInterval(fetchSheetData,5000);
 
 function shuffleArray(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
@@ -515,7 +520,7 @@ alert('Vui lòng nhập ít nhất từ tiếng Anh và nghĩa tiếng Việt');
 return;
 }
 
-fetch(SCRIPT_URL, {
+await fetch(SCRIPT_URL, {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 mode: 'no-cors',   // 👈 thêm để bypass CORS
