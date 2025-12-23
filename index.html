@@ -190,6 +190,26 @@
   text-align: center;
 }
 
+.change-user-btn {
+  position: absolute;
+  top: -46px;
+  left: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  background: #f39c12;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+  z-index: 20;
+  transition: transform 0.15s ease;
+}
+
+.change-user-btn:active {
+  transform: scale(0.9);
+}
 
 
 
@@ -200,6 +220,7 @@
 <body>
 
 <div class="container">
+  <button class="change-user-btn" onclick="changeUser()" title="Đổi người dùng">🔄</button>
   <div class="user-name" id="userName"></div>
   <button class="sound-btn" id="soundBtn" title="Nghe phát âm">🔊</button>
   <button class="nav-btn left" aria-label="Previous" id="btnPrev"></button>
@@ -255,7 +276,7 @@
 <div class="modal active" id="userModal">
   <div class="modal-content">
     <h3>👤 Nhập tên của bạn</h3>
-    <input id="usernameInput" placeholder="VD: sunny@gmail.com hoặc Sunny" />
+    <input id="usernameInput" placeholder="VD: Sunny hoặc Rainy" />
     <div class="modal-actions">
       <button class="save-btn" onclick="saveUser()">🚀 Bắt đầu học</button>
     </div>
@@ -288,7 +309,7 @@
     const name = input.value.trim();
   
     if (!name) {
-      alert('Vui lòng nhập tên hoặc email');
+      alert('Vui lòng nhập tên người dùng');
       return;
     }
   
@@ -305,8 +326,33 @@
     index = 0;
     flipped = false;
     cardWrapper.classList.remove('flipped');
-    renderCard();
+    
+    //renderCard();
+    fetchSheetData();
   }
+
+  function changeUser() {
+    if (!confirm('Bạn muốn đổi người dùng?')) return;
+  
+    // Xóa user hiện tại
+    localStorage.removeItem('flashcard_user');
+    currentUser = null;
+  
+    // Reset UI
+    userNameDiv.textContent = '👤 Guest';
+    words = [];
+    index = 0;
+    flipped = false;
+    cardWrapper.classList.remove('flipped');
+  
+    front.innerHTML = '<b>Vui lòng nhập người dùng</b>';
+    back.innerHTML = '';
+  
+    // Mở lại popup nhập user
+    document.getElementById('usernameInput').value = '';
+    document.getElementById('userModal').classList.add('active');
+  }
+
 
 
   
