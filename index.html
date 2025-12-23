@@ -305,55 +305,53 @@ document.getElementById('userModal').classList.remove('active');
 }
 
 function saveUser() {
-const input = document.getElementById('usernameInput');
-const name = input.value.trim();
-
-if (!name) {
-alert('Vui lòng nhập tên người dùng');
-return;
-}
-
-currentUser = name;
-localStorage.setItem('flashcard_user', name);
-
-if (userNameDiv) {
-userNameDiv.textContent = `👤 ${name.split('@')[0]}`;
-}
-
-document.getElementById('userModal').classList.remove('active');
-
-// reload data theo user mới
-index = 0;
-flipped = false;
-cardWrapper.classList.remove('flipped');
+    const input = document.getElementById('usernameInput');
+    const name = input.value.trim();
     
-    //renderCard();
-
-fetchSheetData();
-    renderCard();
+    if (!name) {
+    alert('Vui lòng nhập tên người dùng');
+    return;
+    }
+    
+    currentUser = name;
+    localStorage.setItem('flashcard_user', name);
+    
+    if (userNameDiv) {
+    userNameDiv.textContent = `👤 ${name.split('@')[0]}`;
+    }
+    
+    document.getElementById('userModal').classList.remove('active');
+    
+    // reload data theo user mới
+    index = 0;
+    flipped = false;
+    cardWrapper.classList.remove('flipped');
+    
+    fetchSheetData(); setInterval(fetchSheetData,5000);
+        // renderCard();
    
 }
 
 function changeUser() {
-if (!confirm('Bạn muốn đổi người dùng?')) return;
-
-// Xóa user hiện tại
-localStorage.removeItem('flashcard_user');
-currentUser = null;
-
-// Reset UI
-userNameDiv.textContent = '👤 Guest';
-words = [];
-index = 0;
-flipped = false;
-cardWrapper.classList.remove('flipped');
-
-front.innerHTML = '<b>Vui lòng nhập người dùng</b>';
-back.innerHTML = '';
-
-// Mở lại popup nhập user
-document.getElementById('usernameInput').value = '';
-document.getElementById('userModal').classList.add('active');
+    if (!confirm('Bạn muốn đổi người dùng?')) return;
+    
+    // Xóa user hiện tại
+    localStorage.removeItem('flashcard_user');
+    currentUser = null;
+    
+    // Reset UI
+    userNameDiv.textContent = '👤 Guest';
+    words = [];
+    index = 0;
+    flipped = false;
+    cardWrapper.classList.remove('flipped');
+    
+    front.innerHTML = '<b>Vui lòng nhập người dùng</b>';
+    back.innerHTML = '';
+    
+    // Mở lại popup nhập user
+    document.getElementById('usernameInput').value = '';
+    document.getElementById('userModal').classList.add('active');
 }
 
 
@@ -370,12 +368,12 @@ let words = [], lastHash = '', index = 0, flipped = false;
 function getVisibleWords() { return currentUser ? words.filter(w => w.owner === currentUser || w.owner === 'All') : words; }
 
 function renderCard() {
-const visibleWords = getVisibleWords();
-if (!visibleWords.length) { front.innerHTML = '<b>Chưa có từ vựng</b>'; back.innerHTML = 'Vui lòng thêm từ mới'; return; }
-index = index % visibleWords.length;
-const w = visibleWords[index];
-front.innerHTML = `${w.image ? `<img src="${w.image}" alt="">` : ''}<div class="word">${w.en}</div><p>(Chạm để lật thẻ)</p>`;
-back.innerHTML = `<div class="meaning">${w.vi}</div><div class="example">${w.example || ''}</div>`;
+    const visibleWords = getVisibleWords();
+    if (!visibleWords.length) { front.innerHTML = '<b>Chưa có từ vựng</b>'; back.innerHTML = 'Vui lòng thêm từ mới'; return; }
+    index = index % visibleWords.length;
+    const w = visibleWords[index];
+    front.innerHTML = `${w.image ? `<img src="${w.image}" alt="">` : ''}<div class="word">${w.en}</div><p>(Chạm để lật thẻ)</p>`;
+    back.innerHTML = `<div class="meaning">${w.vi}</div><div class="example">${w.example || ''}</div>`;
 }
 
 function flipCard() { if(!words.length) return; flipped = !flipped; cardWrapper.classList.toggle('flipped', flipped); }
@@ -391,17 +389,17 @@ slideWrapper.addEventListener('touchend',e=>{const dx=e.changedTouches[0].client
 let displayMode = 'order'; // 'order', 'alphabet', 'random'
 
 function fetchSheetData() {
-const noCacheURL = apiURL + `&_ts=${Date.now()}`;
-fetch(noCacheURL).then(res=>res.text()).then(text=>{
-const json = JSON.parse(text.substring(47,text.length-2));
-const newWords = json.table.rows.map((r,i)=>({
-rowNumber: i + 2, // dòng trong sheet (dòng 1 header)
-time: r.c?.[0]?.v||'', owner:r.c?.[1]?.v||'', en:r.c?.[2]?.v||'', vi:r.c?.[3]?.v||'', example:r.c?.[4]?.v||'', image:r.c?.[5]?.v||''
-})).filter(w=>w.en);
-const hash = JSON.stringify(newWords);
-if(hash!==lastHash){ lastHash=hash; 
-words=newWords; index=0; renderCard(); }
-}).catch(err=>{ front.innerHTML='<b>Lỗi tải Google Sheet</b>'; back.innerHTML=err.message; console.error(err); });
+    const noCacheURL = apiURL + `&_ts=${Date.now()}`;
+    fetch(noCacheURL).then(res=>res.text()).then(text=>{
+    const json = JSON.parse(text.substring(47,text.length-2));
+    const newWords = json.table.rows.map((r,i)=>({
+    rowNumber: i + 2, // dòng trong sheet (dòng 1 header)
+    time: r.c?.[0]?.v||'', owner:r.c?.[1]?.v||'', en:r.c?.[2]?.v||'', vi:r.c?.[3]?.v||'', example:r.c?.[4]?.v||'', image:r.c?.[5]?.v||''
+    })).filter(w=>w.en);
+    const hash = JSON.stringify(newWords);
+    if(hash!==lastHash){ lastHash=hash; 
+    words=newWords; index=0; renderCard(); }
+    }).catch(err=>{ front.innerHTML='<b>Lỗi tải Google Sheet</b>'; back.innerHTML=err.message; console.error(err); });
 }
 
 fetchSheetData(); setInterval(fetchSheetData,5000);
