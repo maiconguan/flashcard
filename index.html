@@ -180,6 +180,16 @@
 .sound-btn:active {
   transform: scale(0.92);
 }
+    
+    #userModal .modal-content {
+  text-align: center;
+}
+
+#usernameInput {
+  font-size: 16px;
+  text-align: center;
+}
+
 
 
 
@@ -241,6 +251,18 @@
   </div>
 </div>
 
+  <!-- USER LOGIN MODAL -->
+<div class="modal active" id="userModal">
+  <div class="modal-content">
+    <h3>👤 Nhập tên của bạn</h3>
+    <input id="usernameInput" placeholder="VD: sunny@gmail.com hoặc Sunny" />
+    <div class="modal-actions">
+      <button class="save-btn" onclick="saveUser()">🚀 Bắt đầu học</button>
+    </div>
+  </div>
+</div>
+
+
 <script>
   const slideWrapper = document.querySelector('.slide-wrapper');
   const cardWrapper = document.querySelector('#cardWrapper');
@@ -253,8 +275,41 @@
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6oZ1g7niQKZvfWke90T4raqVA11RzDpujpjMYMjRwAoXOYBExxwlkrmsDmmCnopEe/exec';
   const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1vmqYN5_0lku8q97oxQP3ppQLtSOxTZtL_L0fnAPnF2Y/edit?usp=sharing';
 
-  const params = new URLSearchParams(window.location.search);
-  const currentUser = params.get('user');
+  // const params = new URLSearchParams(window.location.search);
+  // const currentUser = params.get('user');
+  let currentUser = localStorage.getItem('flashcard_user') || null;
+  if (currentUser && userNameDiv) {
+    userNameDiv.textContent = `👤 ${currentUser.split('@')[0]}`;
+    document.getElementById('userModal').classList.remove('active');
+  }
+
+  function saveUser() {
+    const input = document.getElementById('usernameInput');
+    const name = input.value.trim();
+  
+    if (!name) {
+      alert('Vui lòng nhập tên hoặc email');
+      return;
+    }
+  
+    currentUser = name;
+    localStorage.setItem('flashcard_user', name);
+  
+    if (userNameDiv) {
+      userNameDiv.textContent = `👤 ${name.split('@')[0]}`;
+    }
+  
+    document.getElementById('userModal').classList.remove('active');
+  
+    // reload data theo user mới
+    index = 0;
+    flipped = false;
+    cardWrapper.classList.remove('flipped');
+    renderCard();
+  }
+
+
+  
   if(userNameDiv) userNameDiv.textContent = currentUser ? `👤 ${currentUser.split('@')[0]}` : '👤 Guest';
 
   function extractSheetId(url) { const match = url.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/); return match ? match[1] : null; }
