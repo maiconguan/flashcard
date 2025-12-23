@@ -259,28 +259,28 @@ onclick="setDisplayMode('random')">🎲 Ngẫu nhiên</button>
 
 <!-- Popup -->
 <div class="modal" id="modal">
-<div class="modal-content">
-<h3 id="modalTitle">Thêm từ mới</h3>
-<input id="en" placeholder="English word" />
-<input id="vi" placeholder="Nghĩa tiếng Việt" />
-<textarea id="example" placeholder="Ví dụ"></textarea>
-<input id="image" placeholder="Image URL" />
-<div class="modal-actions">
-<button class="save-btn" onclick="submitWord()">💾 Lưu</button>
-<button class="cancel-btn" onclick="closeModal()">❌ Hủy</button>
-</div>
-</div>
+    <div class="modal-content">
+        <h3 id="modalTitle">Thêm từ mới</h3>
+        <input id="en" placeholder="English word" />
+        <input id="vi" placeholder="Nghĩa tiếng Việt" />
+        <textarea id="example" placeholder="Ví dụ"></textarea>
+        <input id="image" placeholder="Image URL" />
+        <div class="modal-actions">
+            <button class="save-btn" onclick="submitWord()">💾 Lưu</button>
+            <button class="cancel-btn" onclick="closeModal()">❌ Hủy</button>
+        </div>
+    </div>
 </div>
 
 <!-- USER LOGIN MODAL -->
 <div class="modal active" id="userModal">
-<div class="modal-content">
-<h3>👤 Nhập tên của bạn</h3>
-<input id="usernameInput" placeholder="VD: Sunny hoặc Rainy" />
-<div class="modal-actions">
-<button class="save-btn" onclick="saveUser()">🚀 Bắt đầu học</button>
-</div>
-</div>
+    <div class="modal-content">
+        <h3>👤 Nhập tên của bạn</h3>
+        <input id="usernameInput" placeholder="VD: Sunny hoặc Rainy" />
+        <div class="modal-actions">
+            <button class="save-btn" onclick="saveUser()">🚀 OK</button>
+        </div>
+    </div>
 </div>
 
 
@@ -300,8 +300,8 @@ const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1vmqYN5_0lku8q97oxQP3p
 // const currentUser = params.get('user');
 let currentUser = localStorage.getItem('flashcard_user') || null;
 if (currentUser && userNameDiv) {
-userNameDiv.textContent = `👤 ${currentUser.split('@')[0]}`;
-document.getElementById('userModal').classList.remove('active');
+    userNameDiv.textContent = `👤 ${currentUser.split('@')[0]}`;
+    document.getElementById('userModal').classList.remove('active');
 }
 
 function saveUser() {
@@ -309,15 +309,15 @@ function saveUser() {
     const name = input.value.trim();
     
     if (!name) {
-    alert('Vui lòng nhập tên người dùng');
-    return;
+        alert('Vui lòng nhập tên người dùng');
+        return;
     }
     
     currentUser = name;
     localStorage.setItem('flashcard_user', name);
     
     if (userNameDiv) {
-    userNameDiv.textContent = `👤 ${name.split('@')[0]}`;
+        userNameDiv.textContent = `👤 ${name.split('@')[0]}`;
     }
     
     document.getElementById('userModal').classList.remove('active');
@@ -327,9 +327,7 @@ function saveUser() {
     flipped = false;
     cardWrapper.classList.remove('flipped');
     
-    fetchSheetData(); setInterval(fetchSheetData,5000);
-        // renderCard();
-   
+    applyDisplayMode();
 }
 
 function changeUser() {
@@ -391,104 +389,104 @@ let displayMode = 'order'; // 'order', 'alphabet', 'random'
 function fetchSheetData() {
     const noCacheURL = apiURL + `&_ts=${Date.now()}`;
     fetch(noCacheURL).then(res=>res.text()).then(text=>{
-    const json = JSON.parse(text.substring(47,text.length-2));
-    const newWords = json.table.rows.map((r,i)=>({
-    rowNumber: i + 2, // dòng trong sheet (dòng 1 header)
-    time: r.c?.[0]?.v||'', owner:r.c?.[1]?.v||'', en:r.c?.[2]?.v||'', vi:r.c?.[3]?.v||'', example:r.c?.[4]?.v||'', image:r.c?.[5]?.v||''
-    })).filter(w=>w.en);
-    const hash = JSON.stringify(newWords);
-    if(hash!==lastHash){ lastHash=hash; 
-    words=newWords; index=0; renderCard(); }
+        const json = JSON.parse(text.substring(47,text.length-2));
+        const newWords = json.table.rows.map((r,i)=>({
+            rowNumber: i + 2, // dòng trong sheet (dòng 1 header)
+            time: r.c?.[0]?.v||'', owner:r.c?.[1]?.v||'', en:r.c?.[2]?.v||'', vi:r.c?.[3]?.v||'', example:r.c?.[4]?.v||'', image:r.c?.[5]?.v||''
+        })).filter(w=>w.en);
+        
+        const hash = JSON.stringify(newWords);
+        if(hash!==lastHash) { 
+            lastHash=hash; 
+            words=newWords; 
+            index=0; 
+            renderCard(); 
+        }
     }).catch(err=>{ front.innerHTML='<b>Lỗi tải Google Sheet</b>'; back.innerHTML=err.message; console.error(err); });
 }
 
 fetchSheetData(); setInterval(fetchSheetData,5000);
 
 function shuffleArray(arr) {
-for (let i = arr.length - 1; i > 0; i--) {
-const j = Math.floor(Math.random() * (i + 1));
-[arr[i], arr[j]] = [arr[j], arr[i]];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
 }
-return arr;
-}
-
+    
 function sortAlphabetically(arr) {
-return arr.slice().sort((a, b) => a.en.localeCompare(b.en));
+    return arr.slice().sort((a, b) => a.en.localeCompare(b.en));
 }
 
 function setDisplayMode(mode) {
-displayMode = mode;
-
-// highlight button
-document.querySelectorAll('.mode-btn').forEach(btn => {
-btn.classList.toggle('active', btn.dataset.mode === mode);
-});
-
-applyDisplayMode();
+    displayMode = mode;
+    
+    // highlight button
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+    });
+    
+    applyDisplayMode();
 }
 
 function applyDisplayMode() {
-let visibleWords = getVisibleWords().slice(); // clone mảng
+    let visibleWords = getVisibleWords().slice(); // clone mảng
 
-if (displayMode === 'order') {
-// Theo Sheet = theo time tăng dần
-visibleWords.sort((a, b) => {
-return new Date(a.time).getTime() - new Date(b.time).getTime();
-});
+    if (displayMode === 'order') {
+        // Theo Sheet = theo time tăng dần
+        visibleWords.sort((a, b) => {
+            return new Date(a.time).getTime() - new Date(b.time).getTime();
+        });
+    }
+
+    if (displayMode === 'alphabet') {
+        visibleWords.sort((a, b) => a.en.localeCompare(b.en));
+    }
+    
+    if (displayMode === 'random') {
+        for (let i = visibleWords.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [visibleWords[i], visibleWords[j]] =
+            [visibleWords[j], visibleWords[i]];
+        }
+    }
+
+    words = visibleWords;
+    index = 0;
+    flipped = false;
+    cardWrapper.classList.remove('flipped');
+    renderCard();
 }
-
-if (displayMode === 'alphabet') {
-visibleWords.sort((a, b) => a.en.localeCompare(b.en));
-}
-
-if (displayMode === 'random') {
-for (let i = visibleWords.length - 1; i > 0; i--) {
-const j = Math.floor(Math.random() * (i + 1));
-[visibleWords[i], visibleWords[j]] =
-[visibleWords[j], visibleWords[i]];
-}
-}
-
-words = visibleWords;
-index = 0;
-flipped = false;
-cardWrapper.classList.remove('flipped');
-renderCard();
-}
-
-
-
-
-
 
 // Popup functions
 let editingRowIndex = null; // lưu index của từ đang edit
 function openAddModal() {
-editingRowIndex = null; // thêm mới → không edit
-
-document.getElementById('modalTitle').textContent = "➕ Thêm từ mới"; // đổi title
-document.getElementById('en').value = '';
-document.getElementById('vi').value = '';
-document.getElementById('example').value = '';
-document.getElementById('image').value = '';
-document.getElementById('modal').classList.add('active');
+    editingRowIndex = null; // thêm mới → không edit
+    
+    document.getElementById('modalTitle').textContent = "➕ Thêm từ mới"; // đổi title
+    document.getElementById('en').value = '';
+    document.getElementById('vi').value = '';
+    document.getElementById('example').value = '';
+    document.getElementById('image').value = '';
+    document.getElementById('modal').classList.add('active');
 }
 
 function openEditModal() {
-const visibleWords = getVisibleWords();
-if (!visibleWords.length) return;
-
-const w = visibleWords[index];
-editingRowIndex = w.rowNumber; // lưu row thực
-
-document.getElementById('modalTitle').textContent = "✏️ Chỉnh sửa từ"; // đổi title
-document.getElementById('en').value = w.en;
-document.getElementById('vi').value = w.vi;
-document.getElementById('example').value = w.example;
-document.getElementById('image').value = w.image;
-document.getElementById('modal').classList.add('active');
-
-//alert('editingRowIndex: ' + editingRowIndex);
+    const visibleWords = getVisibleWords();
+    if (!visibleWords.length) return;
+    
+    const w = visibleWords[index];
+    editingRowIndex = w.rowNumber; // lưu row thực
+    
+    document.getElementById('modalTitle').textContent = "✏️ Chỉnh sửa từ"; // đổi title
+    document.getElementById('en').value = w.en;
+    document.getElementById('vi').value = w.vi;
+    document.getElementById('example').value = w.example;
+    document.getElementById('image').value = w.image;
+    document.getElementById('modal').classList.add('active');
+    
+    //alert('editingRowIndex: ' + editingRowIndex);
 }
 
 
