@@ -410,8 +410,8 @@ const btnPrev = document.getElementById('btnPrev');
 const btnNext = document.getElementById('btnNext');
 const userNameDiv = document.getElementById('userName');
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6oZ1g7niQKZvfWke90T4raqVA11RzDpujpjMYMjRwAoXOYBExxwlkrmsDmmCnopEe/exec';
-const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1vmqYN5_0lku8q97oxQP3ppQLtSOxTZtL_L0fnAPnF2Y/edit?usp=sharing';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbybroEtM4EMi0dzbiZQGcCeOKPY3sXFhnpBhsHnMYdODapD8gTa7LSwmo_mK3C9FC__/exec';
+//const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1vmqYN5_0lku8q97oxQP3ppQLtSOxTZtL_L0fnAPnF2Y/edit?usp=sharing';
 
 // const params = new URLSearchParams(window.location.search);
 // const currentUser = params.get('user');
@@ -482,9 +482,9 @@ function changeUser() {
 
 if(userNameDiv) userNameDiv.textContent = currentUser ? `👤 ${currentUser.split('@')[0]}` : '👤 Guest';
 
-function extractSheetId(url) { const match = url.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/); return match ? match[1] : null; }
-const sheetId = extractSheetId(SHEET_URL);
-const apiURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+// function extractSheetId(url) { const match = url.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/); return match ? match[1] : null; }
+// const sheetId = extractSheetId(SHEET_URL);
+// const apiURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
 
 let words = [], lastHash = '', index = 0, flipped = false;
 
@@ -511,7 +511,7 @@ slideWrapper.addEventListener('touchend',e=>{const dx=e.changedTouches[0].client
 
 let displayMode = 'order'; // 'order', 'alphabet', 'random'
 let isFetching = false;
-function fetchSheetData() {
+function fetchSheetDataFromGoogleSheetDirectly() {
     if (isFetching) return;
     isFetching = true;
     
@@ -534,6 +534,37 @@ function fetchSheetData() {
     .catch(err=>{ front.innerHTML='<b>Lỗi tải Google Sheet</b>'; back.innerHTML=err.message; console.error(err); isFetching = false;})
     .finally(() => isFetching = false);
 }
+    ///////////////
+function fetchSheetData() {
+  const owner = currentUser || 'All';
+  const url = owner
+    ? `${SCRIPT_URL}?owner=${encodeURIComponent(owner)}`
+    : SCRIPT_URL;
+
+  fetch(url)
+    .then(res => res.json())
+    .then(json => {
+      if (!json.success) throw new Error(json.error);
+
+        newWords = json.data;
+        const hash = JSON.stringify(newWords);
+        
+        if(hash!==lastHash) { 
+            lastHash=hash; 
+            words=newWords; 
+            index=0; 
+            renderCard(); 
+        }
+    })
+    .catch(err => {
+        front.innerHTML='<b>Lỗi tải Google Sheet</b>'; 
+        back.innerHTML=err.message; 
+        console.error(err); 
+        isFetching = false;
+    });
+}
+
+    /////////////////
 
 fetchSheetData(); //setInterval(fetchSheetData,5000);
 
