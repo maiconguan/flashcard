@@ -375,34 +375,33 @@ function showModal({ type, title, message, defaultValue }) {
     };
   });
 }
-    window.alert = function (message) {
+
+function showAlert(message) {
   return showModal({
     type: 'alert',
     title: 'Thông báo',
     message
   });
-};
+}
 
-window.confirm = function (message) {
+function showConfirm(message) {
   return showModal({
     type: 'confirm',
     title: 'Xác nhận',
     message
   });
-};
+}
 
-window.prompt = function (message, defaultValue = '') {
+function showPrompt(message, defaultValue = '') {
   return showModal({
     type: 'prompt',
     title: 'Nhập thông tin',
     message,
     defaultValue
   });
-};
+}
 
 
-
-    
 const slideWrapper = document.querySelector('.slide-wrapper');
 const cardWrapper = document.querySelector('#cardWrapper');
 const front = document.querySelector('.card-front');
@@ -427,7 +426,7 @@ function saveUser() {
     const name = input.value.trim();
     
     if (!name) {
-        await alert('Vui lòng nhập tên người dùng');
+        showAlert('Vui lòng nhập tên người dùng');
         return;
     }
     
@@ -449,8 +448,15 @@ function saveUser() {
 }
 
 function changeUser() {
-    const ok = await confirm('Bạn muốn đổi người dùng?');
-    if (!ok) return;
+
+    showConfirm("Bạn có chắc không?")
+      .then(ok => {
+        if (!ok) return;
+    });
+
+    
+    // const ok = await confirm('Bạn muốn đổi người dùng?');
+    // if (!ok) return;
     
     // Xóa user hiện tại
     localStorage.removeItem('flashcard_user');
@@ -633,7 +639,7 @@ const data = {
 };
 
 if (!data.en || !data.vi) {
-    await alert('Vui lòng nhập ít nhất từ tiếng Anh và nghĩa tiếng Việt');
+    showAlert('Vui lòng nhập ít nhất từ tiếng Anh và nghĩa tiếng Việt');
     return;
 }
 
@@ -644,7 +650,7 @@ fetch(SCRIPT_URL, {
     body: JSON.stringify(data)
 })
 .then(() => {
-    await alert('Đã lưu thành công!');
+    showAlert('Đã lưu thành công!');
     closeModal(); 
     document.getElementById('en').value=''; 
     document.getElementById('vi').value=''; 
@@ -654,7 +660,7 @@ fetch(SCRIPT_URL, {
 })
 .catch(err => {
     console.error(err);
-    await alert('Lỗi: ' + err.message);
+    showAlert('Lỗi: ' + err.message);
 });
 }
 
@@ -662,7 +668,7 @@ const soundBtn = document.getElementById('soundBtn');
 
 function speakWord(text) {
 if (!('speechSynthesis' in window)) {
-    await alert('Trình duyệt không hỗ trợ phát âm');
+    showAlert('Trình duyệt không hỗ trợ phát âm');
     return;
 }
 
