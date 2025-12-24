@@ -210,6 +210,50 @@ transition: transform 0.15s ease;
 .change-user-btn:active {
 transform: scale(0.9);
 }
+    #popupModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+  font-family: system-ui;
+}
+
+.pm-hidden { display: none; }
+
+.pm-box {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  width: 300px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+}
+
+.pm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.pm-actions button {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+#pm-ok {
+  background: #4f46e5;
+  color: #fff;
+}
+
+#pm-cancel {
+  background: #e5e7eb;
+}
+
 
 
 
@@ -283,8 +327,82 @@ onclick="setDisplayMode('random')">🎲 Ngẫu nhiên</button>
     </div>
 </div>
 
+<div id="popupModal" class="pm-hidden">
+  <div class="pm-box">
+    <h3 id="pm-title"></h3>
+    <p id="pm-message"></p>
+
+    <input id="pm-input" class="pm-hidden" />
+
+    <div class="pm-actions">
+      <button id="pm-ok">OK</button>
+      <button id="pm-cancel">Huỷ</button>
+    </div>
+  </div>
+</div>
+
+
 
 <script>
+
+function showModal({ type, title, message, defaultValue }) {
+  return new Promise(resolve => {
+    const modal = document.getElementById('popupModal');
+    const titleEl = document.getElementById('pm-title');
+    const msgEl = document.getElementById('pm-message');
+    const inputEl = document.getElementById('pm-input');
+    const okBtn = document.getElementById('pm-ok');
+    const cancelBtn = document.getElementById('pm-cancel');
+
+    titleEl.textContent = title || '';
+    msgEl.textContent = message || '';
+
+    inputEl.classList.toggle('pm-hidden', type !== 'prompt');
+    inputEl.value = defaultValue || '';
+
+    cancelBtn.style.display = type === 'alert' ? 'none' : 'inline-block';
+
+    modal.classList.remove('pm-hidden');
+
+    okBtn.onclick = () => {
+      modal.classList.add('pm-hidden');
+      resolve(type === 'prompt' ? inputEl.value : true);
+    };
+
+    cancelBtn.onclick = () => {
+      modal.classList.add('pm-hidden');
+      resolve(type === 'confirm' ? false : null);
+    };
+  });
+}
+    window.alert = function (message) {
+  return showModal({
+    type: 'alert',
+    title: 'Thông báo',
+    message
+  });
+};
+
+window.confirm = function (message) {
+  return showModal({
+    type: 'confirm',
+    title: 'Xác nhận',
+    message
+  });
+};
+
+window.prompt = function (message, defaultValue = '') {
+  return showModal({
+    type: 'prompt',
+    title: 'Nhập thông tin',
+    message,
+    defaultValue
+  });
+};
+
+
+
+    
 const slideWrapper = document.querySelector('.slide-wrapper');
 const cardWrapper = document.querySelector('#cardWrapper');
 const front = document.querySelector('.card-front');
@@ -309,7 +427,7 @@ function saveUser() {
     const name = input.value.trim();
     
     if (!name) {
-        alert('Vui lòng nhập tên người dùng');
+        await alert('Vui lòng nhập tên người dùng');
         return;
     }
     
@@ -331,7 +449,8 @@ function saveUser() {
 }
 
 function changeUser() {
-    if (!confirm('Bạn muốn đổi người dùng?')) return;
+    const ok = await confirm('Bạn muốn đổi người dùng?');
+    if (!ok) return;
     
     // Xóa user hiện tại
     localStorage.removeItem('flashcard_user');
@@ -490,8 +609,6 @@ function openEditModal() {
     document.getElementById('example').value = w.example;
     document.getElementById('image').value = w.image;
     document.getElementById('modal').classList.add('active');
-    
-    //alert('editingRowIndex: ' + editingRowIndex);
 }
 
 
@@ -506,38 +623,38 @@ let owner = editingRowIndex != null ? words.find(w => w.rowNumber === editingRow
 if (!owner) owner = currentUser || 'All';
 
 const data = {
-time: new Date().toISOString(),
-owner: owner,
-en: document.getElementById('en').value.trim(),
-vi: document.getElementById('vi').value.trim(),
-example: document.getElementById('example').value.trim(),
-image: document.getElementById('image').value.trim(),
-rowNumber: editingRowIndex // truyền rowIndex để biết update
+    time: new Date().toISOString(),
+    owner: owner,
+    en: document.getElementById('en').value.trim(),
+    vi: document.getElementById('vi').value.trim(),
+    example: document.getElementById('example').value.trim(),
+    image: document.getElementById('image').value.trim(),
+    rowNumber: editingRowIndex // truyền rowIndex để biết update
 };
 
 if (!data.en || !data.vi) {
-alert('Vui lòng nhập ít nhất từ tiếng Anh và nghĩa tiếng Việt');
-return;
+    await alert('Vui lòng nhập ít nhất từ tiếng Anh và nghĩa tiếng Việt');
+    return;
 }
 
- fetch(SCRIPT_URL, {
-method: 'POST',
-headers: { 'Content-Type': 'application/json' },
-mode: 'no-cors',   // 👈 thêm để bypass CORS
-body: JSON.stringify(data)
+fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    mode: 'no-cors',   // 👈 thêm để bypass CORS
+    body: JSON.stringify(data)
 })
 .then(() => {
-alert('Đã lưu thành công!');
-closeModal(); 
-document.getElementById('en').value=''; 
-document.getElementById('vi').value=''; 
-document.getElementById('example').value=''; 
-document.getElementById('image').value=''; 
-fetchSheetData();
+    await alert('Đã lưu thành công!');
+    closeModal(); 
+    document.getElementById('en').value=''; 
+    document.getElementById('vi').value=''; 
+    document.getElementById('example').value=''; 
+    document.getElementById('image').value=''; 
+    fetchSheetData();
 })
 .catch(err => {
-console.error(err);
-alert('Lỗi: ' + err.message);
+    console.error(err);
+    await alert('Lỗi: ' + err.message);
 });
 }
 
@@ -545,8 +662,8 @@ const soundBtn = document.getElementById('soundBtn');
 
 function speakWord(text) {
 if (!('speechSynthesis' in window)) {
-alert('Trình duyệt không hỗ trợ phát âm');
-return;
+    await alert('Trình duyệt không hỗ trợ phát âm');
+    return;
 }
 
 window.speechSynthesis.cancel();
