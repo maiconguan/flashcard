@@ -210,49 +210,43 @@ transition: transform 0.15s ease;
 .change-user-btn:active {
 transform: scale(0.9);
 }
-    #popupModal {
+
+.app-modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.4);
-  display: flex;
-  justify-content: center;
+  background: rgba(0,0,0,0.55);
+  display: none;
   align-items: center;
-  z-index: 99999;
-  font-family: system-ui;
+  justify-content: center;
+  z-index: 9999;
 }
+.app-modal.active { display: flex; }
 
-.pm-hidden { display: none; }
-
-.pm-box {
+.app-modal-box {
   background: #fff;
-  padding: 20px;
-  border-radius: 12px;
   width: 300px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+  border-radius: 14px;
+  padding: 18px;
+  text-align: center;
 }
 
-.pm-actions {
+.app-modal-actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 8px;
+  gap: 12px;
+  justify-content: center;
   margin-top: 16px;
 }
 
-.pm-actions button {
-  padding: 6px 14px;
-  border-radius: 8px;
+.app-modal-actions button {
+  padding: 8px 18px;
+  border-radius: 999px;
   border: none;
+  font-weight: bold;
   cursor: pointer;
 }
 
-#pm-ok {
-  background: #4f46e5;
-  color: #fff;
-}
-
-#pm-cancel {
-  background: #e5e7eb;
-}
+#modalOk { background: #3498db; color: #fff; }
+#modalCancel { background: #e5e7eb; }
 
 
 
@@ -327,79 +321,100 @@ onclick="setDisplayMode('random')">🎲 Ngẫu nhiên</button>
     </div>
 </div>
 
-<div id="popupModal" class="pm-hidden">
-  <div class="pm-box">
-    <h3 id="pm-title"></h3>
-    <p id="pm-message"></p>
-
-    <input id="pm-input" class="pm-hidden" />
-
-    <div class="pm-actions">
-      <button id="pm-ok">OK</button>
-      <button id="pm-cancel">Huỷ</button>
+<div id="app-modal" class="app-modal">
+  <div class="app-modal-box">
+    <div class="app-modal-title" id="modalTitle">Thông báo</div>
+    <div class="app-modal-message" id="modalMessage"></div>
+    <input id="modalInput" class="app-modal-input" style="display:none" />
+    <div class="app-modal-actions">
+      <button id="modalCancel">Huỷ</button>
+      <button id="modalOk">OK</button>
     </div>
   </div>
 </div>
 
 
 
+
 <script>
+const modal = document.getElementById('app-modal');
+const titleEl = document.getElementById('modalTitle');
+const msgEl = document.getElementById('modalMessage');
+const inputEl = document.getElementById('modalInput');
+const btnOk = document.getElementById('modalOk');
+const btnCancel = document.getElementById('modalCancel');
 
-function showModal({ type, title, message, defaultValue }) {
+function hideModal() {
+  modal.classList.remove('active');
+}
+
+function showModal({ title, message, showInput = false, defaultValue = '' }) {
+  titleEl.textContent = title || 'Thông báo';
+  msgEl.textContent = message || '';
+  inputEl.style.display = showInput ? 'block' : 'none';
+  inputEl.value = defaultValue;
+
+  modal.classList.add('active');
+  if (showInput) setTimeout(() => inputEl.focus(), 0);
+}
+
+function clearHandlers() {
+  btnOk.onclick = null;
+  btnCancel.onclick = null;
+}
+
+/************** REPLACEMENTS **************/
+
+function alertModal(message) {
   return new Promise(resolve => {
-    const modal = document.getElementById('popupModal');
-    const titleEl = document.getElementById('pm-title');
-    const msgEl = document.getElementById('pm-message');
-    const inputEl = document.getElementById('pm-input');
-    const okBtn = document.getElementById('pm-ok');
-    const cancelBtn = document.getElementById('pm-cancel');
+    clearHandlers();
+    showModal({ message });
 
-    titleEl.textContent = title || '';
-    msgEl.textContent = message || '';
+    btnCancel.style.display = 'none';
 
-    inputEl.classList.toggle('pm-hidden', type !== 'prompt');
-    inputEl.value = defaultValue || '';
-
-    cancelBtn.style.display = type === 'alert' ? 'none' : 'inline-block';
-
-    modal.classList.remove('pm-hidden');
-
-    okBtn.onclick = () => {
-      modal.classList.add('pm-hidden');
-      resolve(type === 'prompt' ? inputEl.value : true);
-    };
-
-    cancelBtn.onclick = () => {
-      modal.classList.add('pm-hidden');
-      resolve(type === 'confirm' ? false : null);
+    btnOk.onclick = () => {
+      hideModal();   // ✅ ĐÓNG TRƯỚC
+      resolve();
     };
   });
 }
 
-function showAlert(message) {
-  return showModal({
-    type: 'alert',
-    title: 'Thông báo',
-    message
+function confirmModal(message) {
+  return new Promise(resolve => {
+    clearHandlers();
+    showModal({ message });
+
+    btnCancel.style.display = 'inline-block';
+
+    btnOk.onclick = () => {
+      hideModal();
+      resolve(true);
+    };
+    btnCancel.onclick = () => {
+      hideModal();
+      resolve(false);
+    };
   });
 }
 
-function showConfirm(message) {
-  return showModal({
-    type: 'confirm',
-    title: 'Xác nhận',
-    message
+function promptModal(message, defaultValue = '') {
+  return new Promise(resolve => {
+    clearHandlers();
+    showModal({ message, showInput: true, defaultValue });
+
+    btnCancel.style.display = 'inline-block';
+
+    btnOk.onclick = () => {
+      hideModal();
+      resolve(inputEl.value.trim());
+    };
+    btnCancel.onclick = () => {
+      hideModal();
+      resolve(null);
+    };
   });
 }
 
-function showPrompt(message, defaultValue = '') {
-  return showModal({
-    type: 'prompt',
-    title: 'Nhập thông tin',
-    message,
-    defaultValue
-  });
-}
 
 
 const slideWrapper = document.querySelector('.slide-wrapper');
@@ -426,7 +441,7 @@ function saveUser() {
     const name = input.value.trim();
     
     if (!name) {
-        showAlert('Vui lòng nhập tên người dùng');
+        alertModal('Vui lòng nhập tên người dùng');
         return;
     }
     
@@ -448,15 +463,9 @@ function saveUser() {
 }
 
 function changeUser() {
-
-    showConfirm("Bạn có chắc không?")
-      .then(ok => {
-        if (!ok) return;
-    });
-
     
-    // const ok = await confirm('Bạn muốn đổi người dùng?');
-    // if (!ok) return;
+    const ok = confirmModal('Bạn muốn đổi người dùng?');
+    if (!ok) return;
     
     // Xóa user hiện tại
     localStorage.removeItem('flashcard_user');
@@ -670,7 +679,7 @@ const data = {
 };
 
 if (!data.en || !data.vi) {
-    showAlert('Vui lòng nhập ít nhất từ tiếng Anh và nghĩa tiếng Việt');
+    alertModal('Vui lòng nhập ít nhất từ tiếng Anh và nghĩa tiếng Việt');
     return;
 }
 
@@ -681,7 +690,7 @@ fetch(SCRIPT_URL, {
     body: JSON.stringify(data)
 })
 .then(() => {
-    showAlert('Đã lưu thành công!');
+    alertModal('Đã lưu thành công!');
     closeModal(); 
     document.getElementById('en').value=''; 
     document.getElementById('vi').value=''; 
@@ -691,7 +700,7 @@ fetch(SCRIPT_URL, {
 })
 .catch(err => {
     console.error(err);
-    showAlert('Lỗi: ' + err.message);
+    alertModal('Lỗi: ' + err.message);
 });
 }
 
@@ -699,7 +708,7 @@ const soundBtn = document.getElementById('soundBtn');
 
 function speakWord(text) {
 if (!('speechSynthesis' in window)) {
-    showAlert('Trình duyệt không hỗ trợ phát âm');
+    alertModal('Trình duyệt không hỗ trợ phát âm');
     return;
 }
 
