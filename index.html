@@ -426,7 +426,6 @@ const btnNext = document.getElementById('btnNext');
 const userNameDiv = document.getElementById('userName');
 
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbybroEtM4EMi0dzbiZQGcCeOKPY3sXFhnpBhsHnMYdODapD8gTa7LSwmo_mK3C9FC__/exec';
-//const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1vmqYN5_0lku8q97oxQP3ppQLtSOxTZtL_L0fnAPnF2Y/edit?usp=sharing';
 
 // const params = new URLSearchParams(window.location.search);
 // const currentUser = params.get('user');
@@ -462,9 +461,9 @@ function saveUser() {
     location.reload();
 }
 
-function changeUser() {
+async function changeUser() {
     
-    const ok = confirmModal('Bạn muốn đổi người dùng?');
+    const ok = await confirmModal('Bạn muốn đổi người dùng?');
     if (!ok) return;
     
     // Xóa user hiện tại
@@ -487,13 +486,8 @@ function changeUser() {
 }
 
 
-
-
 if(userNameDiv) userNameDiv.textContent = currentUser ? `👤 ${currentUser.split('@')[0]}` : '👤 Guest';
 
-// function extractSheetId(url) { const match = url.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/); return match ? match[1] : null; }
-// const sheetId = extractSheetId(SHEET_URL);
-// const apiURL = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
 
 let words = [], lastHash = '', index = 0, flipped = false;
 
