@@ -32,6 +32,13 @@ img { max-width: 100%; max-height: 160px; border-radius: 10px; margin-bottom: 12
 .word { font-size: 32px; font-weight: bold; }
 .meaning { font-size: 22px; color: #27ae60; }
 .example { font-size: 16px; color: #555; margin-top: 10px; font-style: italic; }
+.word-type {
+  font-size: 14px;
+  color: #64748b;
+  margin-top: 4px;
+  font-style: italic;
+}
+
 
 .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-style: solid; cursor: pointer; z-index: 10; background: transparent; }
 .nav-btn.left { border-width: 90px 120px 90px 0; border-color: transparent rgba(52,152,219,0.95) transparent transparent; left: -160px; }
@@ -300,6 +307,7 @@ onclick="setDisplayMode('random')">🎲 Ngẫu nhiên</button>
     <div class="modal-content">
         <h3 id="modalTitle">Thêm từ mới</h3>
         <input id="en" placeholder="English word" />
+        <input id="type" placeholder="Loại từ (noun, verb, adj...)" />
         <input id="vi" placeholder="Nghĩa tiếng Việt" />
         <textarea id="example" placeholder="Ví dụ"></textarea>
         <input id="image" placeholder="Image URL" />
@@ -425,7 +433,7 @@ const btnPrev = document.getElementById('btnPrev');
 const btnNext = document.getElementById('btnNext');
 const userNameDiv = document.getElementById('userName');
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwhBcb0QkG_qNnBoJDGed4RQBYapHq51dvOMm6miEUL_KbIoh-wQbML7JnOgVtxYU4V/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxMrMfGO0XVIWS4YXpRpcLaC0mYTJleFja0HRCKZ455-_zVZyQcjMl3WOCAtDa5BrJj/exec';
   
 // const params = new URLSearchParams(window.location.search);
 // const currentUser = params.get('user');
@@ -494,13 +502,30 @@ let words = [], lastHash = '', index = 0, flipped = false;
 function getVisibleWords() { return currentUser ? words.filter(w => w.owner === currentUser || w.owner === 'All') : words; }
 
 function renderCard() {
-    const visibleWords = getVisibleWords();
-    if (!visibleWords.length) { front.innerHTML = '<b>Chưa có từ vựng</b>'; back.innerHTML = 'Vui lòng thêm từ mới'; return; }
-    index = index % visibleWords.length;
-    const w = visibleWords[index];
-    front.innerHTML = `${w.image ? `<img src="${w.image}" alt="">` : ''}<div class="word">${w.en}</div><p>(Chạm để lật thẻ)</p>`;
-    back.innerHTML = `<div class="meaning">${w.vi}</div><div class="example">${w.example || ''}</div>`;
+  const visibleWords = getVisibleWords();
+  if (!visibleWords.length) {
+    front.innerHTML = '<b>Chưa có từ vựng</b>';
+    back.innerHTML = 'Vui lòng thêm từ mới';
+    return;
+  }
+
+  index = index % visibleWords.length;
+  const w = visibleWords[index];
+
+  front.innerHTML = `
+    ${w.image ? `<img src="${w.image}" alt="">` : ''}
+    <div class="word">${w.en}</div>
+    ${w.type ? `<div class="word-type">(${w.type})</div>` : ''}
+    <p>(Chạm để lật thẻ)</p>
+  `;
+
+  back.innerHTML = `
+    <div class="meaning">${w.vi}</div>
+    ${w.type ? `<div class="word-type">(${w.type})</div>` : ''}
+    <div class="example">${w.example || ''}</div>
+  `;
 }
+
 
 function flipCard() { if(!words.length) return; flipped = !flipped; cardWrapper.classList.toggle('flipped', flipped); }
 function slideTo(dir) { const visibleWords = getVisibleWords(); if(!visibleWords.length) return; slideWrapper.classList.remove('slide-left','slide-right'); void slideWrapper.offsetWidth; slideWrapper.classList.add(dir === 1 ? 'slide-left' : 'slide-right'); setTimeout(()=>{ index = (index + dir + visibleWords.length)%visibleWords.length; flipped = false; cardWrapper.classList.remove('flipped'); renderCard(); },260); }
@@ -523,7 +548,7 @@ function fetchSheetDataFromGoogleSheetDirectly() {
         const json = JSON.parse(text.substring(47,text.length-2));
         const newWords = json.table.rows.map((r,i)=>({
             rowNumber: i + 2, // dòng trong sheet (dòng 1 header)
-            time: r.c?.[0]?.v||'', owner:r.c?.[1]?.v||'', en:r.c?.[2]?.v||'', vi:r.c?.[3]?.v||'', example:r.c?.[4]?.v||'', image:r.c?.[5]?.v||''
+            time: r.c?.[0]?.v||'', owner:r.c?.[1]?.v||'', en:r.c?.[2]?.v||'', type:r.c?.[3]?.v||'', vi:r.c?.[4]?.v||'', example:r.c?.[5]?.v||'', image:r.c?.[6]?.v||''
         })).filter(w=>w.en);
         
         const hash = JSON.stringify(newWords);
@@ -630,6 +655,7 @@ function openAddModal() {
     
     document.getElementById('modalTitle').textContent = "➕ Thêm từ mới"; // đổi title
     document.getElementById('en').value = '';
+    document.getElementById('type').value = '';
     document.getElementById('vi').value = '';
     document.getElementById('example').value = '';
     document.getElementById('image').value = '';
@@ -645,6 +671,7 @@ function openEditModal() {
     
     document.getElementById('modalTitle').textContent = "✏️ Chỉnh sửa từ"; // đổi title
     document.getElementById('en').value = w.en;
+    document.getElementById('type').value = w.type || '';
     document.getElementById('vi').value = w.vi;
     document.getElementById('example').value = w.example;
     document.getElementById('image').value = w.image;
@@ -666,6 +693,7 @@ const data = {
     time: new Date().toISOString(),
     owner: owner,
     en: document.getElementById('en').value.trim(),
+    type: document.getElementById('type').value.trim(),
     vi: document.getElementById('vi').value.trim(),
     example: document.getElementById('example').value.trim(),
     image: document.getElementById('image').value.trim(),
@@ -724,11 +752,6 @@ if (!visibleWords.length) return;
 const w = visibleWords[index];
 speakWord(w.en);
 };
-
-
-
-
-
 
 </script>
 
