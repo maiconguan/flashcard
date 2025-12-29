@@ -6,7 +6,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <style>
-body { font-family: Arial, sans-serif; background: #f5f7fb; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f7fb;
+  margin: 0;
+
+  /* bỏ flex center ở body */
+  overflow-y: auto;      /* ✅ cho phép scroll */
+  min-height: 100vh;
+}
+
 
 .user-name { position: absolute; top: -48px; width: 100%; text-align: center; font-weight: bold; font-size: 18px; color: #2c3e50; }
 
@@ -266,6 +275,44 @@ transform: scale(0.9);
   color:#facc15;
   transform:scale(1.15);
 }
+.progress-wrap {
+  position: sticky;
+  bottom: 12px;
+  background: #f5f7fb;
+  padding-top: 8px;
+}
+
+
+.progress-text {
+  font-size: 13px;
+  color: #334155;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(135deg, #facc15, #f59e0b);
+  transition: width 0.3s ease;
+}
+.page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* ⬅️ quan trọng */
+  padding-top: 80px;
+  padding-bottom: 120px;  /* chừa chỗ progress bar */
+}
+
 
 
 #modalOk { background: #3498db; color: #fff; }
@@ -278,45 +325,56 @@ transform: scale(0.9);
 
 </style>
 </head>
+
 <body>
+<div class="page">
+  <div class="container">
+    <button class="change-user-btn" onclick="changeUser()" title="Đổi người dùng">🔄</button>
+    <div class="user-name" id="userName"></div>
+    <button class="sound-btn" id="soundBtn" title="Nghe phát âm">🔊</button>
+    <button class="nav-btn left" aria-label="Previous" id="btnPrev"></button>
 
-<div class="container">
-<button class="change-user-btn" onclick="changeUser()" title="Đổi người dùng">🔄</button>
-<div class="user-name" id="userName"></div>
-<button class="sound-btn" id="soundBtn" title="Nghe phát âm">🔊</button>
-<button class="nav-btn left" aria-label="Previous" id="btnPrev"></button>
+    <div class="slide-wrapper">
+      <div class="card-wrapper" id="cardWrapper">
+        <div class="card-face card-front loading">Đang tải dữ liệu…</div>
+        <div class="card-face card-back loading">Vui lòng đợi</div>
+        <div class="learned-star" id="learnedStar">⭐</div>
+      </div>
+    </div>
 
-<div class="slide-wrapper">
-<div class="card-wrapper" id="cardWrapper">
-<div class="card-face card-front loading">Đang tải dữ liệu…</div>
-<div class="card-face card-back loading">Vui lòng đợi</div>
-<div class="learned-star" id="learnedStar">⭐</div>
-</div>
-</div>
 
-<button class="nav-btn right" aria-label="Next" id="btnNext"></button>
+    <button class="nav-btn right" aria-label="Next" id="btnNext"></button>
 
-<div class="container2">
+    <div class="container2">
 <!-- card + nav buttons giữ nguyên -->
 
 <!-- FOOTER -->
-<div class="card-footer">
-<div class="actions">
-<button class="add-btn" onclick="openAddModal()">➕ Thêm từ mới</button>
-<button class="edit-btn" onclick="openEditModal()">✏️ Chỉnh sửa</button>
+    <div class="card-footer">
+      <div class="actions">
+        <button class="add-btn" onclick="openAddModal()">➕ Thêm từ mới</button>
+        <button class="edit-btn" onclick="openEditModal()">✏️ Chỉnh sửa</button>
+      </div>
+
+      <div class="display-mode">
+        <button data-mode="order" class="mode-btn active"
+            onclick="setDisplayMode('order')">📄 Theo Time</button>
+        <button data-mode="alphabet" class="mode-btn"
+            onclick="setDisplayMode('alphabet')">🔤 A → Z</button>
+        <button data-mode="random" class="mode-btn"
+            onclick="setDisplayMode('random')">🎲 Ngẫu nhiên</button>
+      </div>
+
+      <div class="progress-wrap">
+  <div class="progress-text" id="progressText"></div>
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
 </div>
 
-<div class="display-mode">
-<button data-mode="order" class="mode-btn active"
-onclick="setDisplayMode('order')">📄 Theo Time</button>
-<button data-mode="alphabet" class="mode-btn"
-onclick="setDisplayMode('alphabet')">🔤 A → Z</button>
-<button data-mode="random" class="mode-btn"
-onclick="setDisplayMode('random')">🎲 Ngẫu nhiên</button>
+    </div>
+  </div>
 </div>
 </div>
-</div>
-
 
 
 <!-- Popup -->
@@ -357,6 +415,7 @@ onclick="setDisplayMode('random')">🎲 Ngẫu nhiên</button>
     </div>
   </div>
 </div>
+
 
 
 
@@ -552,12 +611,7 @@ function renderCard() {
       e.stopPropagation();
       toggleLearned();
     };
-    // star.addEventListener('click', e=>{
-    //   e.stopPropagation();
-    //   toggleLearned();
-    // });
   }
-
 
 }
 
@@ -602,7 +656,8 @@ function fetchSheetData() {
 
             loadLearnedQueue();
 
-            renderCard(); 
+            renderCard();
+            renderProgress();
         }
     })
     .catch(err => {
@@ -653,6 +708,8 @@ function toggleLearned(){
 
   document.getElementById('learnedStar').classList.toggle('active', learnedQueue[w.rowNumber]);
 
+  renderProgress();
+
 }
 
 async function syncLearnedQueue(){
@@ -691,6 +748,28 @@ async function syncLearnedQueue(){
 window.addEventListener('beforeunload', ()=>{
   syncLearnedQueue();
 });
+
+
+function calculateProgress() {
+  const ownedWords = words;
+
+  const total = ownedWords.length;
+  const learned = ownedWords.filter(w => isLearned(w)).length;
+
+  const percent = total === 0 ? 0 : Math.round((learned / total) * 100);
+
+  return { total, learned, percent };
+}
+
+function renderProgress() {
+  const { total, learned, percent } = calculateProgress();
+
+  document.getElementById('progressText').textContent =
+    `Đã học thuộc ${learned} / ${total} từ (${percent}%)`;
+
+  document.getElementById('progressFill').style.width = `${percent}%`;
+}
+
 
 
 ////////////
