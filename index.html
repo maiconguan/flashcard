@@ -252,6 +252,22 @@ transform: scale(0.9);
   cursor: pointer;
 }
 
+.learned-star{
+  position:absolute;
+  top:14px;
+  right:16px;
+  font-size:26px;
+  cursor:pointer;
+  opacity:.3;
+  transition:.2s;
+}
+.learned-star.active{
+  opacity:1;
+  color:#facc15;
+  transform:scale(1.15);
+}
+
+
 #modalOk { background: #3498db; color: #fff; }
 #modalCancel { background: #e5e7eb; }
 
@@ -274,6 +290,7 @@ transform: scale(0.9);
 <div class="card-wrapper" id="cardWrapper">
 <div class="card-face card-front loading">Đang tải dữ liệu…</div>
 <div class="card-face card-back loading">Vui lòng đợi</div>
+<div class="learned-star" id="learnedStar">⭐</div>
 </div>
 </div>
 
@@ -433,7 +450,7 @@ const btnPrev = document.getElementById('btnPrev');
 const btnNext = document.getElementById('btnNext');
 const userNameDiv = document.getElementById('userName');
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxMrMfGO0XVIWS4YXpRpcLaC0mYTJleFja0HRCKZ455-_zVZyQcjMl3WOCAtDa5BrJj/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx9KDjdJdPfn-tKnIrs1HINYjm8yik8kO4qI-AgbKtkAWVvWH7TCT4XaTtN9u0HaSfP/exec';
   
 // const params = new URLSearchParams(window.location.search);
 // const currentUser = params.get('user');
@@ -494,6 +511,8 @@ async function changeUser() {
 }
 
 
+
+
 if(userNameDiv) userNameDiv.textContent = currentUser ? `👤 ${currentUser.split('@')[0]}` : '👤 Guest';
 
 
@@ -524,6 +543,22 @@ function renderCard() {
     ${w.type ? `<div class="word-type">(${w.type})</div>` : ''}
     <div class="example">${w.example || ''}</div>
   `;
+
+
+  const star = document.getElementById('learnedStar');
+  if(star){
+    star.classList.toggle('active', isLearned(w));
+    star.onclick = (e) => {
+      e.stopPropagation();
+      toggleLearned();
+    };
+    // star.addEventListener('click', e=>{
+    //   e.stopPropagation();
+    //   toggleLearned();
+    // });
+  }
+
+
 }
 
 
@@ -539,29 +574,12 @@ slideWrapper.addEventListener('touchend',e=>{const dx=e.changedTouches[0].client
 
 let displayMode = 'order'; // 'order', 'alphabet', 'random'
 let isFetching = false;
-function fetchSheetDataFromGoogleSheetDirectly() {
-    if (isFetching) return;
-    isFetching = true;
-    
-    const noCacheURL = apiURL + `&_ts=${Date.now()}`;
-     fetch(noCacheURL).then(res=>res.text()).then(text=>{
-        const json = JSON.parse(text.substring(47,text.length-2));
-        const newWords = json.table.rows.map((r,i)=>({
-            rowNumber: i + 2, // dòng trong sheet (dòng 1 header)
-            time: r.c?.[0]?.v||'', owner:r.c?.[1]?.v||'', en:r.c?.[2]?.v||'', type:r.c?.[3]?.v||'', vi:r.c?.[4]?.v||'', example:r.c?.[5]?.v||'', image:r.c?.[6]?.v||''
-        })).filter(w=>w.en);
-        
-        const hash = JSON.stringify(newWords);
-        if(hash!==lastHash) { 
-            lastHash=hash; 
-            words=newWords; 
-            index=0; 
-            renderCard(); 
-        }
-    })
-    .catch(err=>{ front.innerHTML='<b>Lỗi tải Google Sheet</b>'; back.innerHTML=err.message; console.error(err); isFetching = false;})
-    .finally(() => isFetching = false);
-}
+
+//////////
+
+
+
+
     ///////////////
 function fetchSheetData() {
   const owner = currentUser || 'All';
@@ -581,6 +599,9 @@ function fetchSheetData() {
             lastHash=hash; 
             words=newWords; 
             index=0; 
+
+            loadLearnedQueue();
+
             renderCard(); 
         }
     })
@@ -595,6 +616,84 @@ function fetchSheetData() {
     /////////////////
 
 fetchSheetData(); //setInterval(fetchSheetData,5000);
+
+////////////
+let learnedQueue = {}; 
+function loadLearnedQueue(){
+  const raw = localStorage.getItem(currentUser + '_learned_queue');
+  if(!raw) return;
+
+  learnedQueue = JSON.parse(raw);
+
+  syncLearnedQueue();
+}
+
+function saveLearnedQueue(){
+  localStorage.setItem(currentUser + '_learned_queue', JSON.stringify(learnedQueue));
+}
+
+function isLearned(w){
+  // Kiểm tra xem word co rowNumber có tồn tại trong learnedQueue hay không
+  if (Object.hasOwn(learnedQueue, w.rowNumber)) {
+      return learnedQueue[w.rowNumber];
+  }
+
+  return w.learned?.includes(currentUser);
+}
+
+function toggleLearned(){
+  const visibleWords = getVisibleWords();
+  if(!visibleWords.length) return;
+
+  const w = visibleWords[index];
+
+  learnedQueue[w.rowNumber] = !isLearned(w);
+
+  saveLearnedQueue();
+
+  document.getElementById('learnedStar').classList.toggle('active', learnedQueue[w.rowNumber]);
+
+}
+
+async function syncLearnedQueue(){
+  const payload = [];
+
+  Object.keys(learnedQueue).forEach(row=>{
+    payload.push({
+      rowNumber: Number(row),
+      learned: learnedQueue[row]
+    });
+
+  });
+
+  if(!payload.length) return;
+
+  fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        mode: 'no-cors',   // 👈 thêm để bypass CORS
+        body: JSON.stringify({
+            action:'batchLearned',
+            learnedOwner: currentUser,
+            data: payload
+          })
+    })
+    .then(() => {
+      learnedQueue = {};
+      localStorage.removeItem(currentUser + 'learned_queue');
+    })
+    .catch(err => {
+        console.error(err);
+    });
+
+}
+
+window.addEventListener('beforeunload', ()=>{
+  syncLearnedQueue();
+});
+
+
+////////////
 
 function shuffleArray(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
@@ -682,75 +781,74 @@ function openEditModal() {
 function closeModal(){ document.getElementById('modal').classList.remove('active'); }
 
 function submitWord() {
+    // Lấy owner cũ nếu đang edit
+    let owner = editingRowIndex != null ? words.find(w => w.rowNumber === editingRowIndex)?.owner : null;
 
-// Lấy owner cũ nếu đang edit
-let owner = editingRowIndex != null ? words.find(w => w.rowNumber === editingRowIndex)?.owner : null;
+    // Nếu đang thêm mới hoặc owner khác 'All', set owner = currentUser
+    if (!owner) owner = currentUser || 'All';
 
-// Nếu đang thêm mới hoặc owner khác 'All', set owner = currentUser
-if (!owner) owner = currentUser || 'All';
+    const data = {
+        //time: new Date().getTime(),
+        owner: owner,
+        en: document.getElementById('en').value.trim(),
+        type: document.getElementById('type').value.trim(),
+        vi: document.getElementById('vi').value.trim(),
+        example: document.getElementById('example').value.trim(),
+        image: document.getElementById('image').value.trim(),
+        rowNumber: editingRowIndex // truyền rowIndex để biết update
+    };
 
-const data = {
-    time: new Date().toISOString(),
-    owner: owner,
-    en: document.getElementById('en').value.trim(),
-    type: document.getElementById('type').value.trim(),
-    vi: document.getElementById('vi').value.trim(),
-    example: document.getElementById('example').value.trim(),
-    image: document.getElementById('image').value.trim(),
-    rowNumber: editingRowIndex // truyền rowIndex để biết update
-};
+    if (!data.en || !data.vi) {
+        alertModal('Vui lòng nhập ít nhất từ tiếng Anh và nghĩa tiếng Việt');
+        return;
+    }
 
-if (!data.en || !data.vi) {
-    alertModal('Vui lòng nhập ít nhất từ tiếng Anh và nghĩa tiếng Việt');
-    return;
-}
-
-fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    mode: 'no-cors',   // 👈 thêm để bypass CORS
-    body: JSON.stringify(data)
-})
-.then(() => {
-    alertModal('Đã lưu thành công!');
-    closeModal(); 
-    document.getElementById('en').value=''; 
-    document.getElementById('vi').value=''; 
-    document.getElementById('example').value=''; 
-    document.getElementById('image').value=''; 
-    fetchSheetData();
-})
-.catch(err => {
-    console.error(err);
-    alertModal('Lỗi: ' + err.message);
-});
+    fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        mode: 'no-cors',   // 👈 thêm để bypass CORS
+        body: JSON.stringify(data)
+    })
+    .then(() => {
+        alertModal('Đã lưu thành công!');
+        closeModal(); 
+        document.getElementById('en').value=''; 
+        document.getElementById('vi').value=''; 
+        document.getElementById('example').value=''; 
+        document.getElementById('image').value=''; 
+        fetchSheetData();
+    })
+    .catch(err => {
+        console.error(err);
+        alertModal('Lỗi: ' + err.message);
+    });
 }
 
 const soundBtn = document.getElementById('soundBtn');
 
 function speakWord(text) {
-if (!('speechSynthesis' in window)) {
-    alertModal('Trình duyệt không hỗ trợ phát âm');
-    return;
-}
+    if (!('speechSynthesis' in window)) {
+        alertModal('Trình duyệt không hỗ trợ phát âm');
+        return;
+    }
 
-window.speechSynthesis.cancel();
+    window.speechSynthesis.cancel();
 
-const utter = new SpeechSynthesisUtterance(text);
-utter.lang = 'en-US';
-utter.rate = 0.9;
-utter.pitch = 1;
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'en-US';
+    utter.rate = 0.9;
+    utter.pitch = 1;
 
-window.speechSynthesis.speak(utter);
+    window.speechSynthesis.speak(utter);
 }
 
 soundBtn.onclick = (e) => {
-e.stopPropagation(); // không làm flip card
-const visibleWords = getVisibleWords();
-if (!visibleWords.length) return;
+    e.stopPropagation(); // không làm flip card
+    const visibleWords = getVisibleWords();
+    if (!visibleWords.length) return;
 
-const w = visibleWords[index];
-speakWord(w.en);
+    const w = visibleWords[index];
+    speakWord(w.en);
 };
 
 </script>
