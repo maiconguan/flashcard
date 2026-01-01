@@ -365,9 +365,15 @@ transform: scale(0.9);
 
     <div class="container2">
 <!-- card + nav buttons giữ nguyên -->
-
+        <div class="progress-wrap">
+        <div class="progress-text" id="progressText">Đang tải các từ đã thuộc</div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
 <!-- FOOTER -->
     <div class="card-footer">
+
       <div class="actions">
         <button class="add-btn" onclick="openAddModal()">➕ Thêm từ mới</button>
         <button class="edit-btn" onclick="openEditModal()">✏️ Chỉnh sửa</button>
@@ -382,12 +388,7 @@ transform: scale(0.9);
             onclick="setDisplayMode('random')">🎲 Ngẫu nhiên</button>
       </div>
 
-      <div class="progress-wrap">
-        <div class="progress-text" id="progressText"></div>
-        <div class="progress-bar">
-          <div class="progress-fill" id="progressFill"></div>
-        </div>
-      </div>
+
 
     </div>
   </div>
@@ -605,9 +606,11 @@ function renderCard() {
   index = index % visibleWords.length;
   const w = visibleWords[index];
 
+  const example = w.example.replace("(", "<br>(");
+
 
   front.innerHTML = `
-    <div class="card-header card-header-front">—— ${(w.rowNumber - 1)} ——</div>
+    <div class="card-header card-header-front">— ${(w.rowNumber - 1)} —</div>
     ${w.image ? `<img src="${w.image}" alt="">` : ''}
     <div class="word">${w.en}</div>
     ${w.type ? `<div class="word-type">(${w.type})</div>` : ''}
@@ -615,10 +618,10 @@ function renderCard() {
   `;
 
   back.innerHTML = `
-    <div class="card-header card-header-back">—— ${(w.rowNumber - 1)} ——</div>
+    <div class="card-header card-header-back">— ${(w.rowNumber - 1)} —</div>
     <div class="meaning">${w.vi}</div>
     ${w.type ? `<div class="word-type">(${w.type})</div>` : ''}
-    <div class="example">${w.example || ''}</div>
+    <div class="example">${example || ''}</div>
   `;
 
 
