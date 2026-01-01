@@ -32,9 +32,28 @@ body {
 .card-wrapper { width: 100%; height: 100%; position: absolute; inset: 0; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); cursor: pointer; z-index: 2; }
 .card-wrapper.flipped { transform: rotateY(180deg); }
 
+
 .card-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 14px; padding: 22px; box-shadow: 0 12px 28px rgba(0,0,0,0.18); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; box-sizing: border-box; }
 .card-front { background: linear-gradient(135deg, #e3f2fd, #ffffff); border: 2px solid #3498db; }
 .card-back { background: linear-gradient(135deg, #e8f8f0, #ffffff); border: 2px solid #27ae60; transform: rotateY(180deg); }
+
+.card-header {
+    position: absolute; /* Ghim vị trí */
+    top: 0;
+    width: 100%;
+    height: 12%;
+    background-color: #3498db;
+    border-radius: 12px 12px 0 0; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; box-sizing: border-box; color: white; font-style: bold;
+  }
+  .card-header-front {
+    background-color: #3498db;
+    border: 2px solid #3498db;
+  }
+  .card-header-back {
+    background-color: #27ae60;
+    border: 2px solid #27ae60;
+  }
+
 
 img { max-width: 100%; max-height: 160px; border-radius: 10px; margin-bottom: 12px; object-fit: cover; }
 
@@ -315,14 +334,8 @@ transform: scale(0.9);
   padding-bottom: 120px;  /* chừa chỗ progress bar */
 }
 
-
-
 #modalOk { background: #3498db; color: #fff; }
 #modalCancel { background: #e5e7eb; }
-
-
-
-
 
 
 </style>
@@ -338,12 +351,15 @@ transform: scale(0.9);
 
     <div class="slide-wrapper">
       <div class="card-wrapper" id="cardWrapper">
-        <div class="card-face card-front loading">Đang tải dữ liệu…</div>
-        <div class="card-face card-back loading">Vui lòng đợi</div>
-        <div class="learned-star" id="learnedStar">⭐</div>
+          
+          <div class="card-face card-front loading">Đang tải dữ liệu…
+           
+          </div>
+          <div class="card-face card-back loading">Vui lòng đợi</div>
+
+          <div class="learned-star" id="learnedStar">⭐</div>
       </div>
     </div>
-
 
     <button class="nav-btn right" aria-label="Next" id="btnNext"></button>
 
@@ -367,11 +383,11 @@ transform: scale(0.9);
       </div>
 
       <div class="progress-wrap">
-  <div class="progress-text" id="progressText"></div>
-  <div class="progress-bar">
-    <div class="progress-fill" id="progressFill"></div>
-  </div>
-</div>
+        <div class="progress-text" id="progressText"></div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
 
     </div>
   </div>
@@ -417,9 +433,6 @@ transform: scale(0.9);
     </div>
   </div>
 </div>
-
-
-
 
 
 <script>
@@ -592,8 +605,9 @@ function renderCard() {
   index = index % visibleWords.length;
   const w = visibleWords[index];
 
+
   front.innerHTML = `
-    <div class="rowNumer">—— ${(w.rowNumber - 1)} ——</div>
+    <div class="card-header card-header-front">—— ${(w.rowNumber - 1)} ——</div>
     ${w.image ? `<img src="${w.image}" alt="">` : ''}
     <div class="word">${w.en}</div>
     ${w.type ? `<div class="word-type">(${w.type})</div>` : ''}
@@ -601,7 +615,7 @@ function renderCard() {
   `;
 
   back.innerHTML = `
-    <div class="rowNumer">—— ${(w.rowNumber - 1)} ——</div>
+    <div class="card-header card-header-back">—— ${(w.rowNumber - 1)} ——</div>
     <div class="meaning">${w.vi}</div>
     ${w.type ? `<div class="word-type">(${w.type})</div>` : ''}
     <div class="example">${w.example || ''}</div>
