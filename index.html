@@ -47,6 +47,8 @@ img { max-width: 100%; max-height: 160px; border-radius: 10px; margin-bottom: 12
   margin-top: 4px;
   font-style: italic;
 }
+.rowNumer { font-size: 20px; font-weight: bold italic; color: #40748b ; margin: 15px 15px;padding: 20px;}
+
 
 
 .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-style: solid; cursor: pointer; z-index: 10; background: transparent; }
@@ -509,7 +511,7 @@ const btnPrev = document.getElementById('btnPrev');
 const btnNext = document.getElementById('btnNext');
 const userNameDiv = document.getElementById('userName');
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx9KDjdJdPfn-tKnIrs1HINYjm8yik8kO4qI-AgbKtkAWVvWH7TCT4XaTtN9u0HaSfP/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxFwY9moTt7fMEa2JEeNe2RUQgDeg7sXGxLWD4qvDGNkSJ-dh1Ab-G4vsMOSk9r0twK/exec';
   
 // const params = new URLSearchParams(window.location.search);
 // const currentUser = params.get('user');
@@ -591,6 +593,7 @@ function renderCard() {
   const w = visibleWords[index];
 
   front.innerHTML = `
+    <div class="rowNumer">—— ${(w.rowNumber - 1)} ——</div>
     ${w.image ? `<img src="${w.image}" alt="">` : ''}
     <div class="word">${w.en}</div>
     ${w.type ? `<div class="word-type">(${w.type})</div>` : ''}
@@ -598,6 +601,7 @@ function renderCard() {
   `;
 
   back.innerHTML = `
+    <div class="rowNumer">—— ${(w.rowNumber - 1)} ——</div>
     <div class="meaning">${w.vi}</div>
     ${w.type ? `<div class="word-type">(${w.type})</div>` : ''}
     <div class="example">${w.example || ''}</div>
