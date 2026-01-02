@@ -337,6 +337,34 @@ transform: scale(0.9);
 #modalOk { background: #3498db; color: #fff; }
 #modalCancel { background: #e5e7eb; }
 
+.filter-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px auto;
+  width: fit-content;
+  font-weight: 600;
+}
+
+#filterSelect {
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 2px solid #ffd43b;
+  background: #fffbe6;
+  font-size: 14px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.25s ease;
+}
+
+#filterSelect:hover {
+  box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+}
+
+#filterSelect:focus {
+  border-color: #fab005;
+}
+
 
 </style>
 </head>
@@ -388,8 +416,14 @@ transform: scale(0.9);
             onclick="setDisplayMode('random')">🎲 Ngẫu nhiên</button>
       </div>
 
-
-
+      <div class="filter-wrapper">
+        <label for="filterSelect">Bộ lọc : </label>
+        <select id="filterSelect">
+          <option value="all">Tất cả</option>
+          <option value="learned">Từ đã thuộc</option>
+          <option value="not-learned">Từ chưa thuộc</option>
+        </select>
+      </div>
     </div>
   </div>
 </div>
@@ -593,7 +627,15 @@ if(userNameDiv) userNameDiv.textContent = currentUser ? `👤 ${currentUser.spli
 
 let words = [], lastHash = '', index = 0, flipped = false;
 
-function getVisibleWords() { return currentUser ? words.filter(w => w.owner === currentUser || w.owner === 'All') : words; }
+function getVisibleWords() { 
+  const filterValue = filterSelect.value;
+  if (filterValue === "learned") {
+      return words.filter(w => isLearned(w)); // Chỉ từ đã thuộc
+  } else if (filterValue === "not-learned") {
+      return words.filter(w => !isLearned(w)); // Chỉ từ chưa thuộc
+  }
+  return words; 
+}
 
 function renderCard() {
   const visibleWords = getVisibleWords();
@@ -651,9 +693,6 @@ let displayMode = 'order'; // 'order', 'alphabet', 'random'
 let isFetching = false;
 
 //////////
-
-
-
 
     ///////////////
 function fetchSheetData() {
@@ -950,6 +989,17 @@ soundBtn.onclick = (e) => {
     const w = visibleWords[index];
     speakWord(w.en);
 };
+
+const filterSelect = document.getElementById("filterSelect");
+
+filterSelect.addEventListener("change", () => {
+   
+    index = 0;
+    flipped = false;
+    cardWrapper.classList.remove('flipped');
+    renderCard();
+});
+
 
 </script>
 
