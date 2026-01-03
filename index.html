@@ -106,21 +106,34 @@ color: #064635;
 box-shadow: 0 6px 16px rgba(0,0,0,0.25);
 }
 
+.AI-btn {
+  background: linear-gradient(135deg, #43ace9, #385bf9);
+  color: #ffffff;
+  flex: 1;
+  margin-bottom: 10px;
+  padding: 10px;
+  font-size: 14px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
 .cancel-btn {
-background: linear-gradient(135deg, #ff7e5f, #feb47b);
-color: #fff;
-box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  background: linear-gradient(135deg, #ff7e5f, #feb47b);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
 }
 
 .save-btn:hover, .cancel-btn:hover {
-transform: translateY(-2px);
-box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
 }
 .display-mode {
-margin-top: 10px;
-display: flex;
-justify-content: center;
-gap: 8px;
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
 }
 
 .display-mode button {
@@ -434,6 +447,10 @@ transform: scale(0.9);
 <div class="modal" id="modal">
     <div class="modal-content">
         <h3 id="modalTitle">Thêm từ mới</h3>
+        <div style="display: column; align-items: flex-end; margin-bottom: 8px; align-self: flex-end;">
+          <button class="AI-btn" onclick="fetchAI()"> 🤖 Gợi ý từ AI</button>
+          <label id="ai-label" style="font-size: 12px; color: #555; margin-bottom: 4px;">Nhập từ tiếng Anh vào và để AI giúp bạn!</label>
+        </div>
         <input id="en" placeholder="English word" />
         <input id="type" placeholder="Loại từ (noun, verb, adj...)" />
         <input id="vi" placeholder="Nghĩa tiếng Việt" />
@@ -931,6 +948,90 @@ function openEditModal() {
 
 
 function closeModal(){ document.getElementById('modal').classList.remove('active'); }
+
+function extractJsonObject(inputString) {
+    // Tìm vị trí dấu ngoặc nhọn đầu tiên và cuối cùng
+    const start = inputString.indexOf('{');
+    const end = inputString.lastIndexOf('}');
+
+    if (start === -1 || end === -1 || end < start) {
+        return null;
+    }
+
+    const jsonPart = inputString.substring(start, end + 1);
+
+    try {
+        return JSON.parse(jsonPart);
+    } catch (error) {
+        // console.error("Lỗi parse JSON:", error);
+        return null;
+    }
+}
+
+const AI_API_URL = "https://groqbackend-production.up.railway.app/chat";
+function fetchAI() {
+    const enInput = document.getElementById('en');
+    const type = document.getElementById('type');
+    const viInput = document.getElementById('vi');
+    const exampleInput = document.getElementById('example');
+    const aiLabel = document.getElementById('ai-label');
+    aiLabel.textContent = '⏳ Đang gọi AI...';
+
+    const enWord = enInput.value.trim();
+    if (!enWord) {
+      aiLabel.textContent = '❗ Vui lòng nhập từ tiếng Anh để AI gợi ý';  
+      return;
+    }
+
+    const content = `give me a first json item of the word [${enWord}] following format: 
+{ en: English_word, type: type_of_word, vi: Vietnamese_meaning, example: an_English_sentence (a_translated_Vietnamese_sentence)}`;
+  let messages = [];
+  messages.push({ role: "system", content: content });
+
+  const res =  fetch(AI_API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "llama-3.1-8b-instant",
+      messages
+    })
+  })
+  .then(res => {
+    if (res.error) {
+        aiLabel.textContent = '❌Lỗi từ AI';
+        throw new Error(res.error.message || 'Lỗi từ AI');
+    }
+    return res.json();
+  })
+  .then(data => {
+    const reply = data.choices?.[0]?.message?.content;
+    if (!reply) {
+        aiLabel.textContent = '❌ AI không trả về dữ liệu hợp lệ';
+        throw new Error('AI không trả về dữ liệu hợp lệ');
+    }
+
+    // console.log('AI reply:', reply);
+
+    const jsonMatch = extractJsonObject(reply);
+    if (!jsonMatch) {
+        aiLabel.textContent = '❌ Không tìm thấy dữ liệu JSON trong phản hồi của AI';
+        throw new Error('Không tìm thấy dữ liệu JSON trong phản hồi của AI');
+    }
+
+    if (jsonMatch.type) type.value = jsonMatch.type;
+    if (jsonMatch.vi) viInput.value = jsonMatch.vi;
+    if (jsonMatch.example) exampleInput.value = jsonMatch.example;
+
+    aiLabel.textContent = '✅ Đã điền gợi ý từ AI';
+
+  })
+  .catch(err => {
+    // console.error(err);
+    aiLabel.textContent = '❌ Lỗi khi gọi AI: ' + err.message;
+    // alertModal('❌ Lỗi khi gọi AI: ' + err.message);
+  });
+
+}
 
 function submitWord() {
     // Lấy owner cũ nếu đang edit
