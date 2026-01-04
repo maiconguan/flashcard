@@ -646,12 +646,13 @@ let words = [], lastHash = '', index = 0, flipped = false;
 
 function getVisibleWords() { 
   const filterValue = filterSelect.value;
+  const allWords = words;
   if (filterValue === "learned") {
-      return words.filter(w => isLearned(w)); // Chỉ từ đã thuộc
+      return allWords.filter(w => isLearned(w)); // Chỉ từ đã thuộc
   } else if (filterValue === "not-learned") {
-      return words.filter(w => !isLearned(w)); // Chỉ từ chưa thuộc
+      return allWords.filter(w => !isLearned(w)); // Chỉ từ chưa thuộc
   }
-  return words; 
+  return allWords; 
 }
 
 function renderCard() {
@@ -1018,6 +1019,7 @@ function fetchAI() {
         throw new Error('Không tìm thấy dữ liệu JSON trong phản hồi của AI');
     }
 
+    if (jsonMatch.en) enInput.value = jsonMatch.en;
     if (jsonMatch.type) type.value = jsonMatch.type;
     if (jsonMatch.vi) viInput.value = jsonMatch.vi;
     if (jsonMatch.example) exampleInput.value = jsonMatch.example;
