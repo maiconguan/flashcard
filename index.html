@@ -670,19 +670,17 @@ function renderCard() {
 
 
   front.innerHTML = `
-    <div class="card-header card-header-front">— ${(w.rowNumber - 1)} —</div>
+    <div class="card-header card-header-front">— ${(w.rowNumber)} —</div>
     ${w.image ? `<img src="${w.image}" alt="">` : ''}
     <div class="word">${w.en}</div>
     ${w.type ? `<div class="word-type">(${w.type})</div>` : ''}
-    <p>(Chạm để lật thẻ)</p>
-  `;
+    <p>(Chạm để lật thẻ)</p>`;
 
   back.innerHTML = `
-    <div class="card-header card-header-back">— ${(w.rowNumber - 1)} —</div>
+    <div class="card-header card-header-back">— ${(w.rowNumber)} —</div>
     <div class="meaning">${w.vi}</div>
     ${w.type ? `<div class="word-type">(${w.type})</div>` : ''}
-    <div class="example">${example || ''}</div>
-  `;
+    <div class="example">${example || ''}</div>`;
 
 
   const star = document.getElementById('learnedStar');
